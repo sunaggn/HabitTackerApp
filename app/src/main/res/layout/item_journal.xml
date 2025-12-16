@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="12dp"
+    android:background="@drawable/rounded_item_background"
+    android:layout_marginBottom="8dp">
+
+    <TextView
+        android:id="@+id/journal_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Journal entry..."
+        android:textSize="14sp"
+        android:maxLines="3"
+        android:ellipsize="end" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
