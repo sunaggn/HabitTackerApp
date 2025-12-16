@@ -25,17 +25,24 @@ replay_pid*
 
 # Android Studio
 *.iml
-.gradle
+.gradle/
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+/.idea/
+/.vscode/
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+/build/
+/app/build/
+/captures/
+.externalNativeBuild/
+.cxx/
 local.properties
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services
+google-services.json
+
+# Android Profiling
+*.hprof
