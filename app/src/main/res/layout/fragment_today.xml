@@ -3,17 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@color/background"
+    android:fitsSystemWindows="true">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:fitsSystemWindows="true">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="24dp">
 
             <ImageButton
                 android:id="@+id/menu_button"
@@ -30,44 +34,114 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:layout_marginStart="8dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/menu_button"
                 app:layout_constraintTop_toTopOf="parent">
 
                 <TextView
-                    android:id="@+id/yesterday_box"
-                    android:layout_width="60dp"
+                    android:id="@+id/day_monday"
+                    android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:background="@drawable/rounded_card"
                     android:gravity="center"
-                    android:text="Mon"
-                    android:textSize="12sp"
+                    android:text="M"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
                     android:textColor="@color/text_primary"
-                    android:padding="8dp" />
+                    android:padding="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
 
                 <TextView
-                    android:id="@+id/today_box"
-                    android:layout_width="60dp"
+                    android:id="@+id/day_tuesday"
+                    android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:background="@drawable/rounded_card"
                     android:gravity="center"
-                    android:text="Tue"
-                    android:textSize="12sp"
+                    android:text="T"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
                     android:textColor="@color/text_primary"
-                    android:layout_marginStart="8dp"
-                    android:padding="8dp" />
+                    android:layout_marginStart="4dp"
+                    android:padding="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
 
                 <TextView
-                    android:id="@+id/tomorrow_box"
-                    android:layout_width="60dp"
+                    android:id="@+id/day_wednesday"
+                    android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:background="@drawable/rounded_card"
                     android:gravity="center"
-                    android:text="Wed"
-                    android:textSize="12sp"
+                    android:text="W"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
                     android:textColor="@color/text_primary"
-                    android:layout_marginStart="8dp"
-                    android:padding="8dp" />
+                    android:layout_marginStart="4dp"
+                    android:padding="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/day_thursday"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/rounded_card"
+                    android:gravity="center"
+                    android:text="T"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginStart="4dp"
+                    android:padding="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/day_friday"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/rounded_card"
+                    android:gravity="center"
+                    android:text="F"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginStart="4dp"
+                    android:padding="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/day_saturday"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/rounded_card"
+                    android:gravity="center"
+                    android:text="S"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginStart="4dp"
+                    android:padding="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/day_sunday"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/rounded_card"
+                    android:gravity="center"
+                    android:text="S"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginStart="4dp"
+                    android:padding="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
 
             </LinearLayout>
 
@@ -193,6 +267,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
+        android:layout_marginBottom="80dp"
         android:src="@android:drawable/ic_input_add"
         app:tint="@android:color/white" />
 

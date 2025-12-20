@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -38,9 +39,13 @@ public class TodayFragment extends Fragment {
     private String currentDate;
     private TextView todayText;
     private TextView dateText;
-    private TextView yesterdayBox;
-    private TextView todayBox;
-    private TextView tomorrowBox;
+    private TextView dayMonday;
+    private TextView dayTuesday;
+    private TextView dayWednesday;
+    private TextView dayThursday;
+    private TextView dayFriday;
+    private TextView daySaturday;
+    private TextView daySunday;
     private RecyclerView habitsRecyclerView;
     private RecyclerView todosRecyclerView;
     private RecyclerView eventsRecyclerView;
@@ -72,7 +77,7 @@ public class TodayFragment extends Fragment {
         if (getArguments() != null) {
             currentDate = getArguments().getString(ARG_DATE);
         } else {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
             currentDate = sdf.format(Calendar.getInstance().getTime());
         }
         database = new HabitTrackerDatabase(requireContext());
@@ -90,9 +95,13 @@ public class TodayFragment extends Fragment {
 
         todayText = view.findViewById(R.id.today_text);
         dateText = view.findViewById(R.id.date_text);
-        yesterdayBox = view.findViewById(R.id.yesterday_box);
-        todayBox = view.findViewById(R.id.today_box);
-        tomorrowBox = view.findViewById(R.id.tomorrow_box);
+        dayMonday = view.findViewById(R.id.day_monday);
+        dayTuesday = view.findViewById(R.id.day_tuesday);
+        dayWednesday = view.findViewById(R.id.day_wednesday);
+        dayThursday = view.findViewById(R.id.day_thursday);
+        dayFriday = view.findViewById(R.id.day_friday);
+        daySaturday = view.findViewById(R.id.day_saturday);
+        daySunday = view.findViewById(R.id.day_sunday);
         habitsRecyclerView = view.findViewById(R.id.habits_recycler_view);
         todosRecyclerView = view.findViewById(R.id.todos_recycler_view);
         eventsRecyclerView = view.findViewById(R.id.events_recycler_view);
@@ -130,12 +139,12 @@ public class TodayFragment extends Fragment {
     }
 
     private void setupDateDisplay() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
         try {
             Calendar cal = Calendar.getInstance();
             cal.setTime(sdf.parse(currentDate));
             
-            SimpleDateFormat displayFormat = new SimpleDateFormat("d MMMM", Locale.getDefault());
+            SimpleDateFormat displayFormat = new SimpleDateFormat("d MMMM", Locale.ENGLISH);
             dateText.setText(displayFormat.format(cal.getTime()));
             
             Calendar today = Calendar.getInstance();
@@ -143,7 +152,7 @@ public class TodayFragment extends Fragment {
                 cal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
                 todayText.setText("TODAY");
             } else {
-                SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE", Locale.getDefault());
+                SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE", Locale.ENGLISH);
                 todayText.setText(dayFormat.format(cal.getTime()).toUpperCase());
             }
         } catch (Exception e) {
@@ -152,31 +161,59 @@ public class TodayFragment extends Fragment {
     }
 
     private void setupDayNavigation() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
         try {
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(sdf.parse(currentDate));
+            Calendar currentCal = Calendar.getInstance();
+            currentCal.setTime(sdf.parse(currentDate));
             
-            cal.add(Calendar.DAY_OF_YEAR, -1);
-            SimpleDateFormat dayFormat = new SimpleDateFormat("EEE", Locale.getDefault());
-            yesterdayBox.setText(dayFormat.format(cal.getTime()));
+            // Get the start of the week (Monday) for the current date
+            int dayOfWeek = currentCal.get(Calendar.DAY_OF_WEEK);
+            int daysFromMonday = (dayOfWeek == Calendar.SUNDAY) ? 6 : dayOfWeek - Calendar.MONDAY;
+            Calendar weekStart = (Calendar) currentCal.clone();
+            weekStart.add(Calendar.DAY_OF_YEAR, -daysFromMonday);
             
-            cal.add(Calendar.DAY_OF_YEAR, 1);
-            todayBox.setText(dayFormat.format(cal.getTime()));
+            // Set up all 7 day buttons
+            TextView[] dayButtons = {dayMonday, dayTuesday, dayWednesday, dayThursday, dayFriday, daySaturday, daySunday};
             
-            cal.add(Calendar.DAY_OF_YEAR, 1);
-            tomorrowBox.setText(dayFormat.format(cal.getTime()));
+            Calendar today = Calendar.getInstance();
+            today.set(Calendar.HOUR_OF_DAY, 0);
+            today.set(Calendar.MINUTE, 0);
+            today.set(Calendar.SECOND, 0);
+            today.set(Calendar.MILLISECOND, 0);
             
-            yesterdayBox.setOnClickListener(v -> navigateToDay(-1));
-            todayBox.setOnClickListener(v -> navigateToDay(0));
-            tomorrowBox.setOnClickListener(v -> navigateToDay(1));
+            for (int i = 0; i < 7; i++) {
+                Calendar dayCal = (Calendar) weekStart.clone();
+                dayCal.add(Calendar.DAY_OF_YEAR, i);
+                
+                // Calculate offset from current date
+                long diff = dayCal.getTimeInMillis() - currentCal.getTimeInMillis();
+                final int dayOffset = (int) (diff / (1000 * 60 * 60 * 24));
+                
+                // Highlight current day
+                boolean isCurrentDay = dayCal.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                                      dayCal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR);
+                
+                // Highlight if it's the displayed date
+                boolean isDisplayedDate = dayCal.get(Calendar.YEAR) == currentCal.get(Calendar.YEAR) &&
+                                         dayCal.get(Calendar.DAY_OF_YEAR) == currentCal.get(Calendar.DAY_OF_YEAR);
+                
+                if (isCurrentDay || isDisplayedDate) {
+                    dayButtons[i].setBackgroundResource(android.R.drawable.btn_default);
+                    dayButtons[i].setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
+                } else {
+                    dayButtons[i].setBackgroundResource(R.drawable.rounded_card);
+                    dayButtons[i].setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary));
+                }
+                
+                dayButtons[i].setOnClickListener(v -> navigateToDay(dayOffset));
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private void navigateToDay(int offset) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
         try {
             Calendar cal = Calendar.getInstance();
             cal.setTime(sdf.parse(currentDate));

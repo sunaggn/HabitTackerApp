@@ -55,8 +55,8 @@ public class AddEventDialog extends DialogFragment {
         btnTime = view.findViewById(R.id.btn_time);
         checkAlarm = view.findViewById(R.id.check_alarm);
         
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        SimpleDateFormat displayFormat = new SimpleDateFormat("d MMMM yyyy", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+        SimpleDateFormat displayFormat = new SimpleDateFormat("d MMMM yyyy", Locale.ENGLISH);
         try {
             Calendar cal = Calendar.getInstance();
             cal.setTime(sdf.parse(selectedDate));

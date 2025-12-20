@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public void navigateToDate(String date) {
         // Calculate the position for the given date
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
         try {
             Date targetDate = sdf.parse(date);
             Calendar targetCal = Calendar.getInstance();
@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         public Fragment createFragment(int position) {
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.DAY_OF_YEAR, position - 1000);
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
             String date = sdf.format(calendar.getTime());
             
             return TodayFragment.newInstance(date);

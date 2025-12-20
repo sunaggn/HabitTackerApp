@@ -44,7 +44,7 @@ public class MonthlyCalendarFragment extends Fragment {
         // Set selected date if provided
         if (selectedDate != null) {
             try {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(sdf.parse(selectedDate));
                 calendarView.setDate(cal);
