@@ -407,16 +407,16 @@ public class TodayFragment extends Fragment {
         
         // Todo placeholder is always visible
         todoPlaceholderCard.setOnClickListener(v -> {
-            ActionBottomSheet bottomSheet = new ActionBottomSheet();
-            bottomSheet.setDate(currentDate);
-            bottomSheet.setRefreshListener(() -> {
+            AddTodoDialog dialog = new AddTodoDialog();
+            dialog.setDate(currentDate);
+            dialog.setRefreshListener(() -> {
                 loadHabits();
                 loadTodos();
                 loadEvents();
                 loadJournals();
                 loadPhoto();
             });
-            bottomSheet.show(getParentFragmentManager(), "action_bottom_sheet");
+            dialog.show(getParentFragmentManager(), "add_todo");
         });
         
         // Show todos if any, hide RecyclerView if empty
@@ -444,16 +444,16 @@ public class TodayFragment extends Fragment {
         
         // Event placeholder is always visible
         eventPlaceholderCard.setOnClickListener(v -> {
-            ActionBottomSheet bottomSheet = new ActionBottomSheet();
-            bottomSheet.setDate(currentDate);
-            bottomSheet.setRefreshListener(() -> {
+            AddEventDialog dialog = new AddEventDialog();
+            dialog.setDate(currentDate);
+            dialog.setRefreshListener(() -> {
                 loadHabits();
                 loadTodos();
                 loadEvents();
                 loadJournals();
                 loadPhoto();
             });
-            bottomSheet.show(getParentFragmentManager(), "action_bottom_sheet");
+            dialog.show(getParentFragmentManager(), "add_event");
         });
         
         // Show events if any, hide RecyclerView if empty
