@@ -7,7 +7,7 @@
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android.layout_height="match_parent"
         android:fillViewport="true">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -21,17 +21,20 @@
                 android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/menu"
-                android:src="@android:drawable/ic_menu_more"
+                android:src="@drawable/ic_menu_hamburger"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp" />
 
             <LinearLayout
                 android:id="@+id/day_navigation_boxes"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:layout_marginTop="16dp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/menu_button"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
 
                 <TextView
@@ -52,7 +55,7 @@
                     android:background="@drawable/rounded_card"
                     android:gravity="center"
                     android:text="Tue"
-                    android:textSize="12sp"
+                    android.textSize="12sp"
                     android:textColor="@color/text_primary"
                     android:layout_marginStart="8dp"
                     android:padding="8dp" />
@@ -81,7 +84,7 @@
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/menu_button" />
+                app:layout_constraintTop_toBottomOf="@id/day_navigation_boxes" />
 
             <TextView
                 android:id="@+id/date_text"
@@ -98,30 +101,47 @@
                 android:id="@+id/btn_mood"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="😐 Select Mood"
+                android:text="How's your mood?"
                 android:textSize="14sp"
                 android:background="@drawable/rounded_button"
                 android:textColor="@android:color/white"
-                android:padding="12dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:layout_marginEnd="8dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/today_text" />
 
+            <TextView
+                android:id="@+id/habits_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Habits"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/date_text" />
+                
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/habits_recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="8dp"
                 android:nestedScrollingEnabled="false"
-                app:layout_constraintTop_toBottomOf="@id/date_text" />
+                app:layout_constraintTop_toBottomOf="@id/habits_title" />
 
-            <ImageButton
-                android:id="@+id/btn_calendar"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginTop="16dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/calendar"
-                android:src="@android:drawable/ic_menu_today"
+            <TextView
+                android:id="@+id/photo_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Today's Photo"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/habits_recycler_view" />
 
@@ -129,11 +149,11 @@
                 android:id="@+id/photo_card"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 app:cardCornerRadius="20dp"
-                app:cardElevation="2dp"
+                app:cardElevation="3dp"
                 app:cardBackgroundColor="@color/card_background"
-                app:layout_constraintTop_toBottomOf="@id/btn_calendar">
+                app:layout_constraintTop_toBottomOf="@id/photo_title">
 
                 <FrameLayout
                     android:layout_width="match_parent"
@@ -159,29 +179,66 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <TextView
+                android:id="@+id/todos_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="To Do's"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/photo_card" />
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/todos_recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:nestedScrollingEnabled="false"
-                app:layout_constraintTop_toBottomOf="@id/photo_card" />
+                app:layout_constraintTop_toBottomOf="@id/todos_title" />
+
+            <TextView
+                android:id="@+id/events_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Events"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/todos_recycler_view" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/events_recycler_view"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android.layout.height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:nestedScrollingEnabled="false"
-                app:layout_constraintTop_toBottomOf="@id/todos_recycler_view" />
+                app:layout_constraintTop_toBottomOf="@id/events_title" />
+
+            <TextView
+                android:id="@+id/journals_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Journal"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/events_recycler_view" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/journals_recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="24dp"
                 android:nestedScrollingEnabled="false"
-                app:layout_constraintTop_toBottomOf="@id/events_recycler_view" />
+                app:layout_constraintTop_toBottomOf="@id/journals_title" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -192,9 +249,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
         android:src="@android:drawable/ic_input_add"
         app:tint="@android:color/white" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
-

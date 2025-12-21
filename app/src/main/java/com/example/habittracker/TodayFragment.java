@@ -48,7 +48,6 @@ public class TodayFragment extends Fragment {
     private HabitTrackerDatabase database;
     private Button btnMood;
     private FloatingActionButton fabAdd;
-    private ImageButton btnCalendar;
     private ImageButton menuButton;
     private MaterialCardView photoCard;
     private ImageView photoPreview;
@@ -99,7 +98,6 @@ public class TodayFragment extends Fragment {
         journalsRecyclerView = view.findViewById(R.id.journals_recycler_view);
         btnMood = view.findViewById(R.id.btn_mood);
         fabAdd = view.findViewById(R.id.fab_add);
-        btnCalendar = view.findViewById(R.id.btn_calendar);
         menuButton = view.findViewById(R.id.menu_button);
         photoCard = view.findViewById(R.id.photo_card);
         photoPreview = view.findViewById(R.id.photo_preview);
@@ -279,17 +277,36 @@ public class TodayFragment extends Fragment {
     }
 
     private void loadEvents() {
-        android.database.Cursor cursor = database.getEventsForDate(currentDate);
         List<EventItem> events = new ArrayList<>();
         
-        while (cursor.moveToNext()) {
-            long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
-            String title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
-            String description = cursor.getString(cursor.getColumnIndexOrThrow("description"));
-            String time = cursor.getString(cursor.getColumnIndexOrThrow("time"));
-            events.add(new EventItem(id, title, description, time));
+        // Load events
+        android.database.Cursor eventCursor = database.getEventsForDate(currentDate);
+        while (eventCursor.moveToNext()) {
+            long id = eventCursor.getLong(eventCursor.getColumnIndexOrThrow("id"));
+            String title = eventCursor.getString(eventCursor.getColumnIndexOrThrow("title"));
+            String description = eventCursor.getString(eventCursor.getColumnIndexOrThrow("description"));
+            String time = eventCursor.getString(eventCursor.getColumnIndexOrThrow("time"));
+            events.add(new EventItem(id, title, description, time, false));
         }
-        cursor.close();
+        eventCursor.close();
+        
+        // Load alarms and merge with events
+        android.database.Cursor alarmCursor = database.getAlarmsForDate(currentDate);
+        while (alarmCursor.moveToNext()) {
+            long id = alarmCursor.getLong(alarmCursor.getColumnIndexOrThrow("id"));
+            String title = alarmCursor.getString(alarmCursor.getColumnIndexOrThrow("title"));
+            String time = alarmCursor.getString(alarmCursor.getColumnIndexOrThrow("time"));
+            events.add(new EventItem(id, title, "", time, true));
+        }
+        alarmCursor.close();
+        
+        // Sort by time
+        events.sort((e1, e2) -> {
+            if (e1.time == null && e2.time == null) return 0;
+            if (e1.time == null) return 1;
+            if (e2.time == null) return -1;
+            return e1.time.compareTo(e2.time);
+        });
         
         EventAdapter adapter = new EventAdapter(events);
         eventsRecyclerView.setAdapter(adapter);
@@ -373,19 +390,6 @@ public class TodayFragment extends Fragment {
             bottomSheet.show(getParentFragmentManager(), "action_bottom_sheet");
         });
 
-        btnCalendar.setOnClickListener(v -> {
-            WeeklyCalendarFragment fragment = new WeeklyCalendarFragment();
-            fragment.setSelectedDate(currentDate);
-            if (getActivity() instanceof MainActivity) {
-                MainActivity activity = (MainActivity) getActivity();
-                activity.showViewPager();
-                getParentFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, fragment)
-                        .addToBackStack(null)
-                        .commit();
-            }
-        });
-
         menuButton.setOnClickListener(v -> {
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).openDrawer();
@@ -448,12 +452,14 @@ public class TodayFragment extends Fragment {
         String title;
         String description;
         String time;
+        boolean isAlarm;
 
-        EventItem(long id, String title, String description, String time) {
+        EventItem(long id, String title, String description, String time, boolean isAlarm) {
             this.id = id;
             this.title = title;
             this.description = description;
             this.time = time;
+            this.isAlarm = isAlarm;
         }
     }
 
@@ -538,12 +544,18 @@ public class TodayFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull TodoViewHolder holder, int position) {
-            TodoItem todo = todos.get(position);
+            final TodoItem todo = todos.get(position);
             holder.todoTitle.setText(todo.title);
             holder.todoCheckbox.setChecked(todo.completed);
-            
+
             holder.todoCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                database.updateTodoCompletion(todo.id, isChecked);
+                if (isChecked) {
+                    database.deleteTodo(todo.id);
+                    int currentPosition = holder.getAdapterPosition();
+                    todos.remove(currentPosition);
+                    notifyItemRemoved(currentPosition);
+                    notifyItemRangeChanged(currentPosition, todos.size());
+                }
             });
         }
 
@@ -584,6 +596,12 @@ public class TodayFragment extends Fragment {
             EventItem event = events.get(position);
             holder.eventTitle.setText(event.title);
             holder.eventTime.setText(event.time != null ? event.time : "");
+            if (event.isAlarm) {
+                holder.eventIcon.setText("⏰");
+                holder.eventIcon.setVisibility(View.VISIBLE);
+            } else {
+                holder.eventIcon.setVisibility(View.GONE);
+            }
         }
 
         @Override
@@ -592,11 +610,13 @@ public class TodayFragment extends Fragment {
         }
 
         class EventViewHolder extends RecyclerView.ViewHolder {
+            TextView eventIcon;
             TextView eventTitle;
             TextView eventTime;
 
             EventViewHolder(@NonNull View itemView) {
                 super(itemView);
+                eventIcon = itemView.findViewById(R.id.event_icon);
                 eventTitle = itemView.findViewById(R.id.event_title);
                 eventTime = itemView.findViewById(R.id.event_time);
             }

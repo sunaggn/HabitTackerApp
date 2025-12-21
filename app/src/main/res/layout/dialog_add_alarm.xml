@@ -13,6 +13,13 @@
         android:inputType="text" />
 
     <Button
+        android:id="@+id/btn_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Select Date" />
+
+    <Button
         android:id="@+id/btn_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

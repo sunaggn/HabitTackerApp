@@ -47,17 +47,18 @@ public class AddHabitFragment extends Fragment {
     private String endDate = "";
     private boolean reminderEnabled = false;
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        database = new HabitTrackerDatabase(requireContext());
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_add_habit, container, false);
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+        View view = inflater.inflate(R.layout.fragment_add_habit, container, false);
         
-        database = new HabitTrackerDatabase(requireContext());
+        // Initialize views
         editHabitName = view.findViewById(R.id.edit_habit_name);
         textSelectedIcon = view.findViewById(R.id.text_selected_icon);
         viewSelectedColor = view.findViewById(R.id.view_selected_color);
@@ -94,6 +95,8 @@ public class AddHabitFragment extends Fragment {
         
         setupClickListeners(view);
         updateColorView();
+        
+        return view;
     }
 
     private void setupClickListeners(View view) {

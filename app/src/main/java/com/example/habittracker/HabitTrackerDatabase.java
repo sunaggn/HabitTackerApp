@@ -332,6 +332,11 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return db.update(TABLE_TODO_ITEMS, values, "id = ?", new String[]{String.valueOf(todoId)});
     }
 
+    public int deleteTodo(long todoId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(TABLE_TODO_ITEMS, "id = ?", new String[]{String.valueOf(todoId)});
+    }
+
     // Event methods
     public long insertEvent(String date, String title, String description, String time, boolean alarmSet) {
         SQLiteDatabase db = this.getWritableDatabase();
