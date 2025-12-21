@@ -202,52 +202,158 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/photo_card"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:cardCornerRadius="20dp"
+                android:minHeight="56dp"
+                app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
                 app:cardBackgroundColor="@color/card_background"
                 app:layout_constraintTop_toBottomOf="@id/btn_calendar">
 
                 <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="wrap_content"
+                    android:minHeight="56dp">
 
+                    <!-- Photo Preview (shown when photo exists) -->
                     <ImageView
                         android:id="@+id/photo_preview"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="200dp"
                         android:scaleType="centerCrop"
                         android:contentDescription="@string/add_photo"
                         android:visibility="gone" />
 
-                    <TextView
-                        android:id="@+id/photo_placeholder"
-                        android:layout_width="wrap_content"
+                    <!-- Placeholder (shown when no photo) -->
+                    <LinearLayout
+                        android:id="@+id/photo_placeholder_container"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="📷 Tap to add photo"
-                        android:textSize="16sp" />
+                        android:orientation="horizontal"
+                        android:padding="12dp"
+                        android:gravity="center_vertical"
+                        android:minHeight="56dp">
+
+                        <TextView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:text="📷"
+                            android:textSize="20sp"
+                            android:gravity="center"
+                            android:layout_marginEnd="12dp" />
+
+                        <TextView
+                            android:id="@+id/photo_placeholder"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Tap to add photo"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary" />
+
+                    </LinearLayout>
 
                 </FrameLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Todo Placeholder (always visible) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/todo_placeholder_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:minHeight="56dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/card_background"
+                app:layout_constraintTop_toBottomOf="@id/photo_card">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:gravity="center_vertical"
+                    android:minHeight="56dp">
+
+                    <TextView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:text="✓"
+                        android:textSize="20sp"
+                        android:gravity="center"
+                        android:layout_marginEnd="12dp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tap to add todo"
+                        android:textSize="16sp"
+                        android:textColor="@color/text_primary" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Todos RecyclerView (below todo placeholder) -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/todos_recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:nestedScrollingEnabled="false"
-                app:layout_constraintTop_toBottomOf="@id/photo_card" />
+                app:layout_constraintTop_toBottomOf="@id/todo_placeholder_card" />
 
+            <!-- Event Placeholder (always visible) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/event_placeholder_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:minHeight="56dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/card_background"
+                app:layout_constraintTop_toBottomOf="@id/todos_recycler_view">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:gravity="center_vertical"
+                    android:minHeight="56dp">
+
+                    <TextView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:text="📅"
+                        android:textSize="20sp"
+                        android:gravity="center"
+                        android:layout_marginEnd="12dp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tap to add event"
+                        android:textSize="16sp"
+                        android:textColor="@color/text_primary" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Events RecyclerView (below event placeholder) -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/events_recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:nestedScrollingEnabled="false"
-                app:layout_constraintTop_toBottomOf="@id/todos_recycler_view" />
+                app:layout_constraintTop_toBottomOf="@id/event_placeholder_card" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/journals_recycler_view"

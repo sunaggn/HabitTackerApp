@@ -36,7 +36,11 @@ import java.util.Locale;
 public class TodayFragment extends Fragment {
     private static final String ARG_DATE = "date";
     private static final int REQUEST_IMAGE_PICK = 1;
+    private static final int REQUEST_IMAGE_CAPTURE = 2;
+    private static final int REQUEST_CAMERA_PERMISSION = 100;
     private String currentDate;
+    private Uri cameraImageUri;
+    private String cameraImagePath;
     private TextView todayText;
     private TextView dateText;
     private TextView dayMonday;
@@ -58,6 +62,9 @@ public class TodayFragment extends Fragment {
     private MaterialCardView photoCard;
     private ImageView photoPreview;
     private TextView photoPlaceholder;
+    private LinearLayout photoPlaceholderContainer;
+    private MaterialCardView todoPlaceholderCard;
+    private MaterialCardView eventPlaceholderCard;
     private LinearLayout dayNavigationBoxes;
 
     private String[] moods = {"Very Sad", "Sad", "Neutral", "Happy", "Very Happy"};
@@ -113,6 +120,9 @@ public class TodayFragment extends Fragment {
         photoCard = view.findViewById(R.id.photo_card);
         photoPreview = view.findViewById(R.id.photo_preview);
         photoPlaceholder = view.findViewById(R.id.photo_placeholder);
+        photoPlaceholderContainer = view.findViewById(R.id.photo_placeholder_container);
+        todoPlaceholderCard = view.findViewById(R.id.todo_placeholder_card);
+        eventPlaceholderCard = view.findViewById(R.id.event_placeholder_card);
         dayNavigationBoxes = view.findViewById(R.id.day_navigation_boxes);
 
         setupDateDisplay();
@@ -276,9 +286,93 @@ public class TodayFragment extends Fragment {
 
     private void setupPhotoCard() {
         photoCard.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            startActivityForResult(intent, REQUEST_IMAGE_PICK);
+            androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext());
+            builder.setTitle("Add Photo")
+                    .setItems(new String[]{"Galeriden Seç", "Kamera ile Çek"}, (dialog, which) -> {
+                        if (which == 0) {
+                            // Galeriden seç
+                            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                            startActivityForResult(intent, REQUEST_IMAGE_PICK);
+                        } else if (which == 1) {
+                            // Kamera ile çek
+                            checkCameraPermissionAndOpen();
+                        }
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
         });
+    }
+    
+    private void checkCameraPermissionAndOpen() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.CAMERA) 
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+                return;
+            }
+        }
+        openCamera();
+    }
+    
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                openCamera();
+            } else {
+                android.widget.Toast.makeText(requireContext(), "Kamera izni gerekli", android.widget.Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+    
+    private void openCamera() {
+        try {
+            File imagesDir = new File(requireContext().getFilesDir(), "images");
+            if (!imagesDir.exists()) {
+                boolean created = imagesDir.mkdirs();
+                if (!created && !imagesDir.exists()) {
+                    android.widget.Toast.makeText(requireContext(), "Klasör oluşturulamadı", android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+            
+            File imageFile = new File(imagesDir, "photo_" + currentDate + "_" + System.currentTimeMillis() + ".jpg");
+            cameraImagePath = imageFile.getAbsolutePath();
+            
+            try {
+                cameraImageUri = androidx.core.content.FileProvider.getUriForFile(
+                    requireContext(),
+                    requireContext().getPackageName() + ".fileprovider",
+                    imageFile
+                );
+            } catch (IllegalArgumentException e) {
+                android.util.Log.e("Camera", "FileProvider error: " + e.getMessage());
+                android.widget.Toast.makeText(requireContext(), "FileProvider hatası: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
+                return;
+            }
+            
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri);
+            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            
+            // Grant permissions to camera apps
+            java.util.List<android.content.pm.ResolveInfo> cameraActivities = requireContext().getPackageManager()
+                    .queryIntentActivities(intent, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY);
+            for (android.content.pm.ResolveInfo activity : cameraActivities) {
+                requireContext().grantUriPermission(activity.activityInfo.packageName, cameraImageUri,
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            }
+            
+            if (intent.resolveActivity(requireContext().getPackageManager()) != null) {
+                startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+            } else {
+                android.widget.Toast.makeText(requireContext(), "Kamera uygulaması bulunamadı", android.widget.Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            android.util.Log.e("Camera", "Error opening camera: " + e.getMessage(), e);
+            android.widget.Toast.makeText(requireContext(), "Kamera açılamadı: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
+        }
     }
 
     private void loadHabits() {
@@ -311,8 +405,28 @@ public class TodayFragment extends Fragment {
         }
         cursor.close();
         
-        TodoAdapter adapter = new TodoAdapter(todos);
-        todosRecyclerView.setAdapter(adapter);
+        // Todo placeholder is always visible
+        todoPlaceholderCard.setOnClickListener(v -> {
+            ActionBottomSheet bottomSheet = new ActionBottomSheet();
+            bottomSheet.setDate(currentDate);
+            bottomSheet.setRefreshListener(() -> {
+                loadHabits();
+                loadTodos();
+                loadEvents();
+                loadJournals();
+                loadPhoto();
+            });
+            bottomSheet.show(getParentFragmentManager(), "action_bottom_sheet");
+        });
+        
+        // Show todos if any, hide RecyclerView if empty
+        if (todos.isEmpty()) {
+            todosRecyclerView.setVisibility(View.GONE);
+        } else {
+            todosRecyclerView.setVisibility(View.VISIBLE);
+            TodoAdapter adapter = new TodoAdapter(todos);
+            todosRecyclerView.setAdapter(adapter);
+        }
     }
 
     private void loadEvents() {
@@ -328,8 +442,28 @@ public class TodayFragment extends Fragment {
         }
         cursor.close();
         
-        EventAdapter adapter = new EventAdapter(events);
-        eventsRecyclerView.setAdapter(adapter);
+        // Event placeholder is always visible
+        eventPlaceholderCard.setOnClickListener(v -> {
+            ActionBottomSheet bottomSheet = new ActionBottomSheet();
+            bottomSheet.setDate(currentDate);
+            bottomSheet.setRefreshListener(() -> {
+                loadHabits();
+                loadTodos();
+                loadEvents();
+                loadJournals();
+                loadPhoto();
+            });
+            bottomSheet.show(getParentFragmentManager(), "action_bottom_sheet");
+        });
+        
+        // Show events if any, hide RecyclerView if empty
+        if (events.isEmpty()) {
+            eventsRecyclerView.setVisibility(View.GONE);
+        } else {
+            eventsRecyclerView.setVisibility(View.VISIBLE);
+            EventAdapter adapter = new EventAdapter(events);
+            eventsRecyclerView.setAdapter(adapter);
+        }
     }
 
     private void loadJournals() {
@@ -354,19 +488,45 @@ public class TodayFragment extends Fragment {
             if (photoPath != null && !photoPath.isEmpty()) {
                 File imageFile = new File(photoPath);
                 if (imageFile.exists()) {
-                    photoPreview.setImageURI(Uri.fromFile(imageFile));
-                    photoPreview.setVisibility(View.VISIBLE);
-                    photoPlaceholder.setVisibility(View.GONE);
+                    showPhotoPreview(Uri.fromFile(imageFile));
+                } else {
+                    showPhotoPlaceholder();
                 }
+            } else {
+                showPhotoPlaceholder();
             }
+        } else {
+            showPhotoPlaceholder();
         }
         cursor.close();
+    }
+    
+    private void showPhotoPreview(android.net.Uri imageUri) {
+        // Show photo preview
+        ViewGroup.LayoutParams previewParams = photoPreview.getLayoutParams();
+        previewParams.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.3); // 30% of screen height
+        photoPreview.setLayoutParams(previewParams);
+        photoPreview.setImageURI(imageUri);
+        photoPreview.setVisibility(View.VISIBLE);
+        
+        // Hide placeholder
+        photoPlaceholderContainer.setVisibility(View.GONE);
+    }
+    
+    private void showPhotoPlaceholder() {
+        // Hide photo preview
+        photoPreview.setVisibility(View.GONE);
+        
+        // Show placeholder
+        photoPlaceholderContainer.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_PICK && data != null && data.getData() != null) {
+        
+        if (requestCode == REQUEST_IMAGE_PICK && resultCode == android.app.Activity.RESULT_OK && data != null && data.getData() != null) {
+            // Galeriden seçilen fotoğraf
             Uri imageUri = data.getData();
             try {
                 File imagesDir = new File(requireContext().getFilesDir(), "images");
@@ -387,11 +547,25 @@ public class TodayFragment extends Fragment {
                 
                 String photoPath = imageFile.getAbsolutePath();
                 database.insertPhoto(currentDate, photoPath, "");
-                photoPreview.setImageURI(Uri.fromFile(imageFile));
-                photoPreview.setVisibility(View.VISIBLE);
-                photoPlaceholder.setVisibility(View.GONE);
+                showPhotoPreview(Uri.fromFile(imageFile));
             } catch (Exception e) {
                 e.printStackTrace();
+                android.widget.Toast.makeText(requireContext(), "Fotoğraf kaydedilemedi", android.widget.Toast.LENGTH_SHORT).show();
+            }
+        } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == android.app.Activity.RESULT_OK && cameraImagePath != null) {
+            // Kamera ile çekilen fotoğraf
+            try {
+                File imageFile = new File(cameraImagePath);
+                if (imageFile.exists()) {
+                    String photoPath = imageFile.getAbsolutePath();
+                    database.insertPhoto(currentDate, photoPath, "");
+                    showPhotoPreview(Uri.fromFile(imageFile));
+                } else {
+                    android.widget.Toast.makeText(requireContext(), "Fotoğraf bulunamadı", android.widget.Toast.LENGTH_SHORT).show();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                android.widget.Toast.makeText(requireContext(), "Fotoğraf kaydedilemedi", android.widget.Toast.LENGTH_SHORT).show();
             }
         }
     }
