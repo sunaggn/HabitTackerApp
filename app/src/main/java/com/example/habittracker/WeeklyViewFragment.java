@@ -21,8 +21,12 @@ import java.util.List;
 import java.util.Locale;
 
 public class WeeklyViewFragment extends Fragment {
+    private HabitTrackerDatabase database;
+    private RecyclerView weeklyRecyclerView;
+    private TextView weekTitle;
+    
     // Item classes
-    private static class TodoItem {
+    static class TodoItem {
         long id;
         String title;
         String description;
@@ -36,7 +40,7 @@ public class WeeklyViewFragment extends Fragment {
         }
     }
 
-    private static class EventItem {
+    static class EventItem {
         long id;
         String title;
         String description;
@@ -49,9 +53,6 @@ public class WeeklyViewFragment extends Fragment {
             this.time = time;
         }
     }
-    private HabitTrackerDatabase database;
-    private RecyclerView weeklyRecyclerView;
-    private String currentWeekStartDate;
 
     @Nullable
     @Override
@@ -65,7 +66,12 @@ public class WeeklyViewFragment extends Fragment {
         
         database = new HabitTrackerDatabase(requireContext());
         weeklyRecyclerView = view.findViewById(R.id.weekly_recycler_view);
+        weekTitle = view.findViewById(R.id.week_title);
         
+        setupWeeklyView();
+    }
+
+    private void setupWeeklyView() {
         // Calculate current week start (Monday)
         Calendar cal = Calendar.getInstance();
         cal.setFirstDayOfWeek(Calendar.MONDAY);
@@ -78,18 +84,19 @@ public class WeeklyViewFragment extends Fragment {
         cal.set(Calendar.MILLISECOND, 0);
         
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-        currentWeekStartDate = sdf.format(cal.getTime());
+        String currentWeekStartDate = sdf.format(cal.getTime());
         
-        setupWeeklyView();
-    }
-
-    private void setupWeeklyView() {
+        // Update week title
+        SimpleDateFormat titleFormat = new SimpleDateFormat("d MMM", Locale.ENGLISH);
+        Calendar weekEnd = (Calendar) cal.clone();
+        weekEnd.add(Calendar.DAY_OF_YEAR, 6);
+        String weekRange = titleFormat.format(cal.getTime()) + " - " + titleFormat.format(weekEnd.getTime());
+        weekTitle.setText(weekRange);
+        
         List<DayData> weekData = new ArrayList<>();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
         SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE", Locale.ENGLISH);
         SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM", Locale.ENGLISH);
         
-        Calendar cal = Calendar.getInstance();
         try {
             cal.setTime(sdf.parse(currentWeekStartDate));
             
@@ -134,7 +141,7 @@ public class WeeklyViewFragment extends Fragment {
         weeklyRecyclerView.setAdapter(adapter);
     }
 
-    private class DayData {
+    static class DayData {
         String date;
         String dayName;
         String dateDisplay;
@@ -313,4 +320,3 @@ public class WeeklyViewFragment extends Fragment {
         }
     }
 }
-
