@@ -16,14 +16,15 @@
 
     <TextView
         android:id="@+id/habit_icon"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_marginStart="16dp"
         android:text="📚"
-        android:textSize="20sp"
+        android:textSize="16sp"
         android:gravity="center"
         app:layout_constraintStart_toEndOf="@id/habit_checkbox"
-        app:layout_constraintTop_toTopOf="@id/habit_checkbox" />
+        app:layout_constraintTop_toTopOf="@id/habit_checkbox"
+        app:layout_constraintBottom_toBottomOf="@id/habit_checkbox" />
 
     <TextView
         android:id="@+id/habit_name"

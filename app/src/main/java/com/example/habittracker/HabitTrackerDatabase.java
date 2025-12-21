@@ -232,7 +232,7 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
 
     public Cursor getHabitsForDate(String date) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT h.*, he.completed FROM " + TABLE_HABITS + " h " +
+        String query = "SELECT DISTINCT h.*, COALESCE(he.completed, 0) as completed FROM " + TABLE_HABITS + " h " +
                 "LEFT JOIN " + TABLE_HABIT_ENTRIES + " he ON h.id = he.habit_id AND he.date = ? " +
                 "ORDER BY h.created_date DESC";
         return db.rawQuery(query, new String[]{date});

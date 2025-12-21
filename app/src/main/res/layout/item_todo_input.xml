@@ -7,9 +7,9 @@
     android:paddingStart="20dp"
     android:paddingEnd="20dp"
     android:gravity="center_vertical"
-    android:background="@drawable/rounded_card"
+    android:background="@drawable/card_with_border"
     android:layout_marginBottom="12dp"
-    android:elevation="2dp">
+    android:elevation="0dp">
 
     <CheckBox
         android:id="@+id/todo_checkbox"
@@ -41,7 +41,7 @@
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:src="@android:drawable/ic_menu_delete"
-        android:tint="@color/accent"
+        android:tint="@color/error"
         android:padding="6dp"
         android:background="?android:attr/selectableItemBackgroundBorderless"
         android:clickable="true"

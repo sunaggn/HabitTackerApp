@@ -139,6 +139,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         findViewById(R.id.fragment_container).setVisibility(android.view.View.GONE);
     }
 
+    public void showWeeklyView() {
+        WeeklyViewFragment fragment = new WeeklyViewFragment();
+        viewPager.setVisibility(android.view.View.GONE);
+        findViewById(R.id.fragment_container).setVisibility(android.view.View.VISIBLE);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .commit();
+    }
+
     public void openDrawer() {
         drawerLayout.openDrawer(navigationView);
     }

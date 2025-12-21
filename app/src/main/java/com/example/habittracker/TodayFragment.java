@@ -59,6 +59,7 @@ public class TodayFragment extends Fragment {
     private FloatingActionButton fabAdd;
     private ImageButton btnCalendar;
     private ImageButton menuButton;
+    private ImageButton btnBackWeekly;
     private MaterialCardView photoCard;
     private ImageView photoPreview;
     private TextView photoPlaceholder;
@@ -68,7 +69,7 @@ public class TodayFragment extends Fragment {
     private LinearLayout dayNavigationBoxes;
 
     private String[] moods = {"Very Sad", "Sad", "Neutral", "Happy", "Very Happy"};
-    private String[] moodEmojis = {"😢", "😞", "😐", "😊", "😄"};
+    private String[] moodEmojis = {"😢", "😞", "😐", "😊", "😎"};
 
     public static TodayFragment newInstance(String date) {
         TodayFragment fragment = new TodayFragment();
@@ -117,6 +118,7 @@ public class TodayFragment extends Fragment {
         fabAdd = view.findViewById(R.id.fab_add);
         btnCalendar = view.findViewById(R.id.btn_calendar);
         menuButton = view.findViewById(R.id.menu_button);
+        btnBackWeekly = view.findViewById(R.id.btn_back_weekly);
         photoCard = view.findViewById(R.id.photo_card);
         photoPreview = view.findViewById(R.id.photo_preview);
         photoPlaceholder = view.findViewById(R.id.photo_placeholder);
@@ -207,8 +209,13 @@ public class TodayFragment extends Fragment {
                 boolean isDisplayedDate = dayCal.get(Calendar.YEAR) == currentCal.get(Calendar.YEAR) &&
                                          dayCal.get(Calendar.DAY_OF_YEAR) == currentCal.get(Calendar.DAY_OF_YEAR);
                 
-                if (isCurrentDay || isDisplayedDate) {
-                    dayButtons[i].setBackgroundResource(android.R.drawable.btn_default);
+                if (isCurrentDay) {
+                    // Today - darker purple with white text
+                    dayButtons[i].setBackgroundResource(R.drawable.day_button_today);
+                    dayButtons[i].setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
+                } else if (isDisplayedDate) {
+                    // Selected day - lighter purple with white text
+                    dayButtons[i].setBackgroundResource(R.drawable.day_button_selected);
                     dayButtons[i].setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
                 } else {
                     dayButtons[i].setBackgroundResource(R.drawable.rounded_card);
@@ -241,6 +248,15 @@ public class TodayFragment extends Fragment {
     private void setupMoodSlider() {
         btnMood.setOnClickListener(v -> {
             MoodDialog dialog = new MoodDialog();
+            
+            // Load current mood if exists
+            android.database.Cursor cursor = database.getMoodForDate(currentDate);
+            if (cursor.moveToFirst()) {
+                String currentMood = cursor.getString(cursor.getColumnIndexOrThrow("mood_type"));
+                dialog.setInitialMood(currentMood);
+            }
+            cursor.close();
+            
             dialog.setMoodSelectedListener((mood, feelings) -> {
                 String feelingTags = String.join(",", feelings);
                 saveMood(mood, feelingTags);
@@ -251,7 +267,6 @@ public class TodayFragment extends Fragment {
     }
     
     private void updateMoodButton(String mood) {
-        String[] moodEmojis = {"😎", "😊", "😐", "😞", "😢"};
         int index = -1;
         for (int i = 0; i < moods.length; i++) {
             if (moods[i].equals(mood)) {
@@ -260,7 +275,7 @@ public class TodayFragment extends Fragment {
             }
         }
         if (index >= 0) {
-            btnMood.setText(moodEmojis[index] + " " + mood);
+            btnMood.setText(moodEmojis[index]);
         }
     }
 
@@ -378,12 +393,21 @@ public class TodayFragment extends Fragment {
     private void loadHabits() {
         android.database.Cursor cursor = database.getHabitsForDate(currentDate);
         List<HabitItem> habits = new ArrayList<>();
+        java.util.Set<Long> seenHabitIds = new java.util.HashSet<>();
         
         while (cursor.moveToNext()) {
             long habitId = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
+            
+            // Skip if we've already seen this habit ID (prevent duplicates)
+            if (seenHabitIds.contains(habitId)) {
+                continue;
+            }
+            seenHabitIds.add(habitId);
+            
             String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
             String category = cursor.getString(cursor.getColumnIndexOrThrow("category"));
-            int completed = cursor.getInt(cursor.getColumnIndexOrThrow("completed"));
+            int completed = cursor.getColumnIndex("completed") >= 0 ? 
+                cursor.getInt(cursor.getColumnIndex("completed")) : 0;
             habits.add(new HabitItem(habitId, name, category, completed == 1));
         }
         cursor.close();
@@ -602,6 +626,12 @@ public class TodayFragment extends Fragment {
                 ((MainActivity) getActivity()).openDrawer();
             }
         });
+
+        btnBackWeekly.setOnClickListener(v -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).showWeeklyView();
+            }
+        });
     }
 
     private void loadMoodForDate() {
@@ -610,7 +640,7 @@ public class TodayFragment extends Fragment {
             String moodType = cursor.getString(cursor.getColumnIndexOrThrow("mood_type"));
             updateMoodButton(moodType);
         } else {
-            btnMood.setText("😐 Select Mood");
+            btnMood.setText("😐");
         }
         cursor.close();
     }

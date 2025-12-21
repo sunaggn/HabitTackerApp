@@ -29,156 +29,192 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <ImageButton
+                android:id="@+id/btn_back_weekly"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Back to weekly view"
+                android:src="@android:drawable/ic_menu_revert"
+                android:tint="@color/text_primary"
+                app:layout_constraintStart_toEndOf="@id/menu_button"
+                app:layout_constraintTop_toTopOf="parent" />
+
             <LinearLayout
                 android:id="@+id/day_navigation_boxes"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="0dp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/menu_button"
+                app:layout_constraintStart_toEndOf="@id/btn_back_weekly"
                 app:layout_constraintTop_toTopOf="parent">
 
                 <TextView
                     android:id="@+id/day_monday"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:background="@drawable/rounded_card"
                     android:gravity="center"
                     android:text="M"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
-                    android:padding="8dp"
+                    android:padding="4dp"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <TextView
                     android:id="@+id/day_tuesday"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:background="@drawable/rounded_card"
                     android:gravity="center"
                     android:text="T"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
-                    android:layout_marginStart="4dp"
-                    android:padding="8dp"
+                    android:layout_marginStart="2dp"
+                    android:padding="4dp"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <TextView
                     android:id="@+id/day_wednesday"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:background="@drawable/rounded_card"
                     android:gravity="center"
                     android:text="W"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
-                    android:layout_marginStart="4dp"
-                    android:padding="8dp"
+                    android:layout_marginStart="2dp"
+                    android:padding="4dp"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <TextView
                     android:id="@+id/day_thursday"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:background="@drawable/rounded_card"
                     android:gravity="center"
                     android:text="T"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
-                    android:layout_marginStart="4dp"
-                    android:padding="8dp"
+                    android:layout_marginStart="2dp"
+                    android:padding="4dp"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <TextView
                     android:id="@+id/day_friday"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:background="@drawable/rounded_card"
                     android:gravity="center"
                     android:text="F"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
-                    android:layout_marginStart="4dp"
-                    android:padding="8dp"
+                    android:layout_marginStart="2dp"
+                    android:padding="4dp"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <TextView
                     android:id="@+id/day_saturday"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:background="@drawable/rounded_card"
                     android:gravity="center"
                     android:text="S"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
-                    android:layout_marginStart="4dp"
-                    android:padding="8dp"
+                    android:layout_marginStart="2dp"
+                    android:padding="4dp"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <TextView
                     android:id="@+id/day_sunday"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:background="@drawable/rounded_card"
                     android:gravity="center"
                     android:text="S"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
-                    android:layout_marginStart="4dp"
-                    android:padding="8dp"
+                    android:layout_marginStart="2dp"
+                    android:padding="4dp"
                     android:clickable="true"
                     android:focusable="true" />
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/today_text"
+            <LinearLayout
+                android:id="@+id/date_calendar_container"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="TODAY"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/menu_button" />
+                app:layout_constraintTop_toBottomOf="@id/menu_button">
 
-            <TextView
-                android:id="@+id/date_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="16 December"
-                android:textSize="18sp"
-                android:textColor="@color/text_secondary"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/today_text" />
+                <ImageButton
+                    android:id="@+id/btn_calendar"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/calendar"
+                    android:src="@android:drawable/ic_menu_today"
+                    android:tint="@color/text_primary" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginStart="8dp">
+
+                    <TextView
+                        android:id="@+id/today_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TODAY"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:id="@+id/date_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="16 December"
+                        android:textSize="18sp"
+                        android:textColor="@color/text_secondary" />
+
+                </LinearLayout>
+
+            </LinearLayout>
 
             <Button
                 android:id="@+id/btn_mood"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="😐 Select Mood"
-                android:textSize="14sp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="😐"
+                android:textSize="24sp"
                 android:background="@drawable/rounded_button"
                 android:textColor="@android:color/white"
-                android:padding="12dp"
+                android:padding="0dp"
+                android:gravity="center"
+                android:backgroundTint="@color/primary"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/today_text" />
+                app:layout_constraintTop_toTopOf="@id/date_calendar_container" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/habits_recycler_view"
@@ -186,18 +222,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:nestedScrollingEnabled="false"
-                app:layout_constraintTop_toBottomOf="@id/date_text" />
-
-            <ImageButton
-                android:id="@+id/btn_calendar"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginTop="16dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/calendar"
-                android:src="@android:drawable/ic_menu_today"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/habits_recycler_view" />
+                app:layout_constraintTop_toBottomOf="@id/date_calendar_container" />
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/photo_card"
@@ -205,10 +230,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:minHeight="56dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/card_background"
-                app:layout_constraintTop_toBottomOf="@id/btn_calendar">
+                app:strokeWidth="2dp"
+                app:strokeColor="@color/card_border"
+                app:layout_constraintTop_toBottomOf="@id/habits_recycler_view">
 
                 <FrameLayout
                     android:layout_width="match_parent"
@@ -264,9 +291,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:minHeight="56dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/card_background"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/accent_light"
+                app:strokeWidth="2dp"
+                app:strokeColor="@color/accent"
                 app:layout_constraintTop_toBottomOf="@id/photo_card">
 
                 <LinearLayout
@@ -313,9 +342,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:minHeight="56dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/card_background"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/accent_light"
+                app:strokeWidth="2dp"
+                app:strokeColor="@color/accent"
                 app:layout_constraintTop_toBottomOf="@id/todos_recycler_view">
 
                 <LinearLayout
@@ -375,7 +406,8 @@
         android:layout_margin="16dp"
         android:layout_marginBottom="80dp"
         android:src="@android:drawable/ic_input_add"
-        app:tint="@android:color/white" />
+        app:tint="@android:color/white"
+        app:backgroundTint="@color/primary" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
