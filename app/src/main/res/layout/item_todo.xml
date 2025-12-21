@@ -19,11 +19,25 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:layout_marginEnd="8dp"
         android:text="To-Do Title"
         android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn_delete_todo"
         app:layout_constraintStart_toEndOf="@id/todo_checkbox"
         app:layout_constraintTop_toTopOf="@id/todo_checkbox" />
+
+    <ImageView
+        android:id="@+id/btn_delete_todo"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@android:drawable/ic_menu_delete"
+        android:tint="@color/accent"
+        android:padding="6dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

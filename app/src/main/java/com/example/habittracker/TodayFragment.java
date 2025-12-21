@@ -756,6 +756,18 @@ public class TodayFragment extends Fragment {
             holder.todoCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 database.updateTodoCompletion(todo.id, isChecked);
             });
+            
+            holder.btnDelete.setOnClickListener(v -> {
+                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext());
+                builder.setTitle("Delete Todo")
+                        .setMessage("Are you sure you want to delete this todo?")
+                        .setPositiveButton("Delete", (dialog, which) -> {
+                            database.deleteTodoItem(todo.id);
+                            loadTodos();
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            });
         }
 
         @Override
@@ -766,11 +778,13 @@ public class TodayFragment extends Fragment {
         class TodoViewHolder extends RecyclerView.ViewHolder {
             CheckBox todoCheckbox;
             TextView todoTitle;
+            ImageView btnDelete;
 
             TodoViewHolder(@NonNull View itemView) {
                 super(itemView);
                 todoCheckbox = itemView.findViewById(R.id.todo_checkbox);
                 todoTitle = itemView.findViewById(R.id.todo_title);
+                btnDelete = itemView.findViewById(R.id.btn_delete_todo);
             }
         }
     }
@@ -795,6 +809,18 @@ public class TodayFragment extends Fragment {
             EventItem event = events.get(position);
             holder.eventTitle.setText(event.title);
             holder.eventTime.setText(event.time != null ? event.time : "");
+            
+            holder.btnDelete.setOnClickListener(v -> {
+                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext());
+                builder.setTitle("Delete Event")
+                        .setMessage("Are you sure you want to delete this event?")
+                        .setPositiveButton("Delete", (dialog, which) -> {
+                            database.deleteEvent(event.id);
+                            loadEvents();
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            });
         }
 
         @Override
@@ -805,11 +831,13 @@ public class TodayFragment extends Fragment {
         class EventViewHolder extends RecyclerView.ViewHolder {
             TextView eventTitle;
             TextView eventTime;
+            ImageView btnDelete;
 
             EventViewHolder(@NonNull View itemView) {
                 super(itemView);
                 eventTitle = itemView.findViewById(R.id.event_title);
                 eventTime = itemView.findViewById(R.id.event_time);
+                btnDelete = itemView.findViewById(R.id.btn_delete_event);
             }
         }
     }
