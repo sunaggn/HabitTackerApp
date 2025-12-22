@@ -111,28 +111,34 @@ public class AddEventDialog extends DialogFragment {
             timePickerDialog.show();
         });
 
-        builder.setView(view)
-                .setPositiveButton("Save", (dialog, which) -> {
-                    String title = editTitle.getText().toString().trim();
-                    if (!TextUtils.isEmpty(title)) {
-                        String description = editDescription.getText().toString().trim();
-                        boolean alarmSet = checkAlarm.isChecked();
-                        
-                        if (eventItem != null) {
-                            database.updateEvent(eventItem.id, title, description, selectedTime);
-                            Toast.makeText(requireContext(), "Event updated", Toast.LENGTH_SHORT).show();
-                        } else {
-                            database.insertEvent(selectedDate, title, description, selectedTime, alarmSet);
-                            Toast.makeText(requireContext(), "Event added", Toast.LENGTH_SHORT).show();
-                        }
+        android.widget.TextView btnSave = view.findViewById(R.id.btn_save);
+        android.widget.TextView btnCancel = view.findViewById(R.id.btn_cancel);
+        
+        btnSave.setOnClickListener(v -> {
+            String title = editTitle.getText().toString().trim();
+            if (!TextUtils.isEmpty(title)) {
+                String description = editDescription.getText().toString().trim();
+                boolean alarmSet = checkAlarm.isChecked();
+                
+                if (eventItem != null) {
+                    database.updateEvent(eventItem.id, title, description, selectedTime);
+                    Toast.makeText(requireContext(), "Event updated", Toast.LENGTH_SHORT).show();
+                } else {
+                    database.insertEvent(selectedDate, title, description, selectedTime, alarmSet);
+                    Toast.makeText(requireContext(), "Event added", Toast.LENGTH_SHORT).show();
+                }
 
-                        if (refreshListener != null) {
-                            refreshListener.onRefresh();
-                        }
-                    }
-                })
-                .setNegativeButton("Cancel", null);
-
-        return builder.create();
+                if (refreshListener != null) {
+                    refreshListener.onRefresh();
+                }
+                dismiss();
+            }
+        });
+        
+        btnCancel.setOnClickListener(v -> dismiss());
+        
+        android.app.Dialog dialog = builder.setView(view).create();
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        return dialog;
     }
 }

@@ -66,31 +66,36 @@ public class AddAlarmDialog extends DialogFragment {
             timePickerDialog.show();
         });
         
-        builder.setView(view)
-                .setTitle("Add Alarm")
-                .setPositiveButton("Save", (dialog, which) -> {
-                    String title = editTitle.getText().toString().trim();
-                    if (!TextUtils.isEmpty(title) && !TextUtils.isEmpty(selectedTime)) {
-                        if (checkPermissions()) {
-                            long alarmId = database.insertAlarm(date, selectedTime, title);
-                            if (scheduleAlarm(alarmId, date, selectedTime, title)) {
-                                Toast.makeText(requireContext(), "Alarm added", Toast.LENGTH_SHORT).show();
-                                if (refreshListener != null) {
-                                    refreshListener.onRefresh();
-                                }
-                            } else {
-                                Toast.makeText(requireContext(), "Alarm added but could not schedule", Toast.LENGTH_SHORT).show();
-                            }
-                        } else {
-                            Toast.makeText(requireContext(), "Please grant notification permission in settings", Toast.LENGTH_LONG).show();
+        android.widget.TextView btnSave = view.findViewById(R.id.btn_save);
+        android.widget.TextView btnCancel = view.findViewById(R.id.btn_cancel);
+        
+        btnSave.setOnClickListener(v -> {
+            String title = editTitle.getText().toString().trim();
+            if (!TextUtils.isEmpty(title) && !TextUtils.isEmpty(selectedTime)) {
+                if (checkPermissions()) {
+                    long alarmId = database.insertAlarm(date, selectedTime, title);
+                    if (scheduleAlarm(alarmId, date, selectedTime, title)) {
+                        Toast.makeText(requireContext(), "Alarm added", Toast.LENGTH_SHORT).show();
+                        if (refreshListener != null) {
+                            refreshListener.onRefresh();
                         }
                     } else {
-                        Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Alarm added but could not schedule", Toast.LENGTH_SHORT).show();
                     }
-                })
-                .setNegativeButton("Cancel", null);
+                } else {
+                    Toast.makeText(requireContext(), "Please grant notification permission in settings", Toast.LENGTH_LONG).show();
+                }
+            } else {
+                Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
+            }
+            dismiss();
+        });
         
-        return builder.create();
+        btnCancel.setOnClickListener(v -> dismiss());
+        
+        android.app.Dialog dialog = builder.setView(view).create();
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        return dialog;
     }
 
     private boolean checkPermissions() {
