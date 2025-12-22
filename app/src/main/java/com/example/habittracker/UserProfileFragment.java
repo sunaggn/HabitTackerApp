@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,6 +19,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.textfield.TextInputEditText;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -27,10 +28,10 @@ import java.util.Calendar;
 
 public class UserProfileFragment extends Fragment {
     private static final int REQUEST_IMAGE_PICK = 1;
-    private EditText editName;
-    private EditText editSurname;
-    private EditText editEmail;
-    private EditText editPhone;
+    private TextInputEditText editName;
+    private TextInputEditText editSurname;
+    private TextInputEditText editEmail;
+    private TextInputEditText editPhone;
     private ImageView profileImage;
     private Button btnSave;
     private TextView textGender;
@@ -49,7 +50,7 @@ public class UserProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        
+
         database = new HabitTrackerDatabase(requireContext());
         editName = view.findViewById(R.id.edit_name);
         editSurname = view.findViewById(R.id.edit_surname);
@@ -60,32 +61,32 @@ public class UserProfileFragment extends Fragment {
         textGender = view.findViewById(R.id.text_gender);
         textBirthdate = view.findViewById(R.id.text_birthdate);
         android.widget.ImageButton btnBack = view.findViewById(R.id.btn_back);
-        
+
         btnBack.setOnClickListener(v -> {
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).showViewPager();
             }
         });
-        
+
         loadProfile();
-        
+
         profileImage.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             startActivityForResult(intent, REQUEST_IMAGE_PICK);
         });
-        
+
         view.findViewById(R.id.layout_gender).setOnClickListener(v -> showGenderPicker());
         view.findViewById(R.id.layout_birthdate).setOnClickListener(v -> showDatePicker());
-        
+
         btnSave.setOnClickListener(v -> {
             String name = editName.getText().toString().trim();
             String surname = editSurname.getText().toString().trim();
             String email = editEmail.getText().toString().trim();
             String phone = editPhone.getText().toString().trim();
-            
+
             database.insertUserProfile(name, surname, email, phone, profileImagePath, selectedGender, selectedBirthdate);
             Toast.makeText(requireContext(), "Profile saved", Toast.LENGTH_SHORT).show();
-            
+
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).loadUserProfile();
             }
@@ -100,19 +101,19 @@ public class UserProfileFragment extends Fragment {
             editEmail.setText(cursor.getString(cursor.getColumnIndexOrThrow("email")));
             editPhone.setText(cursor.getString(cursor.getColumnIndexOrThrow("phone")));
             profileImagePath = cursor.getString(cursor.getColumnIndexOrThrow("profile_image_path"));
-            
+
             String gender = cursor.getString(cursor.getColumnIndexOrThrow("gender"));
             if (gender != null && !gender.isEmpty()) {
                 selectedGender = gender;
                 textGender.setText(gender);
             }
-            
+
             String birthdate = cursor.getString(cursor.getColumnIndexOrThrow("birthdate"));
             if (birthdate != null && !birthdate.isEmpty()) {
                 selectedBirthdate = birthdate;
                 textBirthdate.setText(birthdate);
             }
-            
+
             if (!TextUtils.isEmpty(profileImagePath)) {
                 File imageFile = new File(profileImagePath);
                 if (imageFile.exists()) {
@@ -132,7 +133,7 @@ public class UserProfileFragment extends Fragment {
                 break;
             }
         }
-        
+
         new AlertDialog.Builder(requireContext())
                 .setTitle("Select Gender")
                 .setSingleChoiceItems(genders, selectedIndex, (dialog, which) -> {
@@ -155,7 +156,7 @@ public class UserProfileFragment extends Fragment {
                 // Use current date
             }
         }
-        
+
         DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(),
                 (view, year, month, dayOfMonth) -> {
                     selectedBirthdate = String.format("%02d/%02d/%04d", month + 1, dayOfMonth, year);
@@ -178,7 +179,7 @@ public class UserProfileFragment extends Fragment {
                     imagesDir.mkdirs();
                 }
                 File imageFile = new File(imagesDir, "profile_" + System.currentTimeMillis() + ".jpg");
-                
+
                 InputStream inputStream = requireContext().getContentResolver().openInputStream(imageUri);
                 FileOutputStream outputStream = new FileOutputStream(imageFile);
                 byte[] buffer = new byte[1024];
@@ -188,7 +189,7 @@ public class UserProfileFragment extends Fragment {
                 }
                 outputStream.close();
                 inputStream.close();
-                
+
                 profileImagePath = imageFile.getAbsolutePath();
                 profileImage.setImageURI(Uri.fromFile(imageFile));
             } catch (Exception e) {

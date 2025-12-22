@@ -59,7 +59,6 @@ public class TodayFragment extends Fragment implements RefreshListener {
     private RecyclerView journalsRecyclerView;
     private HabitTrackerDatabase database;
     private Button btnMood;
-    private FloatingActionButton fabAdd;
     private ImageButton btnCalendar;
     private ImageButton menuButton;
     private ImageButton btnBackWeekly;
@@ -119,7 +118,6 @@ public class TodayFragment extends Fragment implements RefreshListener {
         eventsRecyclerView = view.findViewById(R.id.events_recycler_view);
         journalsRecyclerView = view.findViewById(R.id.journals_recycler_view);
         btnMood = view.findViewById(R.id.btn_mood);
-        fabAdd = view.findViewById(R.id.fab_add);
         btnCalendar = view.findViewById(R.id.btn_calendar);
         menuButton = view.findViewById(R.id.menu_button);
         btnBackWeekly = view.findViewById(R.id.btn_back_weekly);

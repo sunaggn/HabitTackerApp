@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="@drawable/gradient_background_vibrant"
     android:fitsSystemWindows="true">
 
     <androidx.core.widget.NestedScrollView
@@ -27,7 +27,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/menu"
                 android:src="@drawable/ic_menu_hamburger"
-                app:tint="@color/text_primary"
+                app:tint="@color/white"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -38,7 +38,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Back to weekly view"
                 android:src="@android:drawable/ic_menu_revert"
-                app:tint="@color/text_primary"
+                app:tint="@color/white"
                 app:layout_constraintStart_toEndOf="@id/menu_button"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -61,7 +61,7 @@
                     android:text="M"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/black"
                     android:padding="4dp"
                     android:clickable="true"
                     android:focusable="true" />
@@ -75,7 +75,7 @@
                     android:text="T"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/black"
                     android:layout_marginStart="2dp"
                     android:padding="4dp"
                     android:clickable="true"
@@ -90,7 +90,7 @@
                     android:text="W"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/black"
                     android:layout_marginStart="2dp"
                     android:padding="4dp"
                     android:clickable="true"
@@ -105,7 +105,7 @@
                     android:text="T"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/black"
                     android:layout_marginStart="2dp"
                     android:padding="4dp"
                     android:clickable="true"
@@ -120,7 +120,7 @@
                     android:text="F"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/black"
                     android:layout_marginStart="2dp"
                     android:padding="4dp"
                     android:clickable="true"
@@ -135,7 +135,7 @@
                     android:text="S"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/black"
                     android:layout_marginStart="2dp"
                     android:padding="4dp"
                     android:clickable="true"
@@ -150,7 +150,7 @@
                     android:text="S"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/black"
                     android:layout_marginStart="2dp"
                     android:padding="4dp"
                     android:clickable="true"
@@ -175,7 +175,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/calendar"
                     android:src="@android:drawable/ic_menu_today"
-                    app:tint="@color/text_primary" />
+                    app:tint="@color/white" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -190,7 +190,7 @@
                         android:text="TODAY"
                         android:textSize="24sp"
                         android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
+                        android:textColor="@color/white" />
 
                     <TextView
                         android:id="@+id/date_text"
@@ -210,11 +210,11 @@
                 android:layout_height="48dp"
                 android:text="😐"
                 android:textSize="24sp"
-                android:background="@drawable/rounded_button"
-                android:textColor="@android:color/white"
+                android:background="@drawable/rounded_card"
+                android:textColor="@color/text_on_card"
                 android:padding="0dp"
                 android:gravity="center"
-                android:backgroundTint="@color/primary"
+                android:backgroundTint="@color/white"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/date_calendar_container" />
 
@@ -224,7 +224,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:text="Habits"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
@@ -244,7 +244,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:text="Today's Photo"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
@@ -297,7 +297,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Tap to add photo"
-                            android:textColor="@color/text_primary"
+                            android:textColor="@color/text_on_card"
                             android:textSize="16sp" />
 
                     </LinearLayout>
@@ -305,14 +305,14 @@
                 </FrameLayout>
 
             </com.google.android.material.card.MaterialCardView>
-            
+
             <TextView
                 android:id="@+id/todos_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:text="To-Do's"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
@@ -326,7 +326,7 @@
                 android:minHeight="56dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/card_background"
+                app:cardBackgroundColor="@color/placeholder_background"
                 app:layout_constraintTop_toBottomOf="@id/todos_title">
 
                 <LinearLayout
@@ -351,7 +351,7 @@
                         android:layout_weight="1"
                         android:text="Tap to add todo"
                         android:textSize="16sp"
-                        android:textColor="@color/text_primary" />
+                        android:textColor="@color/text_on_card" />
 
                 </LinearLayout>
 
@@ -371,7 +371,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:text="Events"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
@@ -385,7 +385,7 @@
                 android:minHeight="56dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/card_background"
+                app:cardBackgroundColor="@color/placeholder_background"
                 app:layout_constraintTop_toBottomOf="@id/events_title">
 
                 <LinearLayout
@@ -411,7 +411,7 @@
                         android:layout_weight="1"
                         android:text="Tap to add event"
                         android:textSize="16sp"
-                        android:textColor="@color/text_primary" />
+                        android:textColor="@color/text_on_card" />
 
                 </LinearLayout>
 
@@ -431,7 +431,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:text="Journal"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
@@ -445,7 +445,7 @@
                 android:minHeight="56dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/card_background"
+                app:cardBackgroundColor="@color/placeholder_background"
                 app:layout_constraintTop_toBottomOf="@id/journal_title">
 
                 <LinearLayout
@@ -470,7 +470,7 @@
                         android:layout_weight="1"
                         android:text="Tap to add journal"
                         android:textSize="16sp"
-                        android:textColor="@color/text_primary" />
+                        android:textColor="@color/text_on_card" />
 
                 </LinearLayout>
 
@@ -487,16 +487,5 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.core.widget.NestedScrollView>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_add"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="32dp"
-        android:contentDescription="@string/add"
-        android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/primary"
-        app:tint="@android:color/white" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
