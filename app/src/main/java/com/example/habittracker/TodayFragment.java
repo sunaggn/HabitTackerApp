@@ -630,15 +630,9 @@ public class TodayFragment extends Fragment implements RefreshListener {
 
     private void setupButtons() {
         btnCalendar.setOnClickListener(v -> {
-            WeeklyCalendarFragment fragment = new WeeklyCalendarFragment();
-            fragment.setSelectedDate(currentDate);
             if (getActivity() instanceof MainActivity) {
                 MainActivity activity = (MainActivity) getActivity();
-                activity.showViewPager();
-                getParentFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, fragment)
-                        .addToBackStack(null)
-                        .commit();
+                activity.showMonthlyView();
             }
         });
 

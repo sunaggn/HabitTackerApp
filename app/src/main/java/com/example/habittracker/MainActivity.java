@@ -118,8 +118,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             fragment = new HabitsListFragment();
         } else if (id == R.id.nav_settings) {
             fragment = new SettingsFragment();
-        } else if (id == R.id.nav_customize) {
-            fragment = new CustomizeFragment();
         }
 
         if (fragment != null) {
@@ -168,6 +166,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public HabitTrackerDatabase getDatabase() {
         return database;
+    }
+
+    public ViewPager2 getViewPager() {
+        return viewPager;
     }
 
     public void navigateToDate(String date) {

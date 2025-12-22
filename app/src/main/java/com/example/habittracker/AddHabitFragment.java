@@ -164,7 +164,16 @@ public class AddHabitFragment extends Fragment {
             
             // Refresh TodayFragment if MainActivity is available
             if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).refreshTodayFragment();
+                MainActivity activity = (MainActivity) getActivity();
+                activity.refreshTodayFragment();
+                // Also refresh all fragments in ViewPager
+                if (activity.getViewPager() != null) {
+                    int currentItem = activity.getViewPager().getCurrentItem();
+                    // Refresh current and adjacent fragments
+                    for (int i = Math.max(0, currentItem - 1); i <= Math.min(activity.getViewPager().getAdapter().getItemCount() - 1, currentItem + 1); i++) {
+                        activity.getViewPager().getAdapter().notifyItemChanged(i);
+                    }
+                }
             }
             
             if (getActivity() != null) {
