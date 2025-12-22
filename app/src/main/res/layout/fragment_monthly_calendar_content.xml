@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="?android:attr/colorBackground"
     android:fitsSystemWindows="true">
 
     <androidx.core.widget.NestedScrollView
@@ -28,7 +28,7 @@
                 android:textSize="28sp"
                 android:fontFamily="sans-serif-medium"
                 android:textStyle="normal"
-                android:textColor="@color/text_primary"
+                android:textColor="?attr/colorOnBackground"
                 android:layout_marginTop="0dp"
                 android:letterSpacing="0.01"
                 app:layout_constraintStart_toStartOf="parent"
@@ -50,7 +50,7 @@
                     android:layout_weight="1"
                     android:text="Mon"
                     android:textSize="12sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:gravity="center"
                     android:fontFamily="sans-serif-medium"
                     android:letterSpacing="0.01" />
@@ -61,7 +61,7 @@
                     android:layout_weight="1"
                     android:text="Tue"
                     android:textSize="12sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:gravity="center"
                     android:fontFamily="sans-serif-medium"
                     android:letterSpacing="0.01" />
@@ -72,7 +72,7 @@
                     android:layout_weight="1"
                     android:text="Wed"
                     android:textSize="12sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:gravity="center"
                     android:fontFamily="sans-serif-medium"
                     android:letterSpacing="0.01" />
@@ -83,7 +83,7 @@
                     android:layout_weight="1"
                     android:text="Thu"
                     android:textSize="12sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:gravity="center"
                     android:fontFamily="sans-serif-medium"
                     android:letterSpacing="0.01" />
@@ -94,7 +94,7 @@
                     android:layout_weight="1"
                     android:text="Fri"
                     android:textSize="12sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:gravity="center"
                     android:fontFamily="sans-serif-medium"
                     android:letterSpacing="0.01" />
@@ -105,7 +105,7 @@
                     android:layout_weight="1"
                     android:text="Sat"
                     android:textSize="12sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:gravity="center"
                     android:fontFamily="sans-serif-medium"
                     android:letterSpacing="0.01" />
@@ -116,7 +116,7 @@
                     android:layout_weight="1"
                     android:text="Sun"
                     android:textSize="12sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:gravity="center"
                     android:fontFamily="sans-serif-medium"
                     android:letterSpacing="0.01" />

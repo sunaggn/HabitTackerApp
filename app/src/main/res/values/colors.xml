@@ -3,32 +3,38 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Figma Design Palette -->
-    <color name="primary">#6FBF9C</color> <!-- Sage Green -->
-    <color name="primary_light">#E6F3ED</color> <!-- Light Sage -->
-    <color name="primary_dark">#559F7F</color> <!-- Darker Sage -->
+    <!-- Plum Theme Colors - Light Mode -->
+    <color name="plum_primary">#8E44AD</color>
+    <color name="plum_bg_light">#FDFCFE</color>
+    <color name="plum_card_light">#FFFFFF</color>
+    <color name="text_main_light">#2D132C</color>
+
+    <!-- Legacy colors for compatibility -->
+    <color name="primary">#8E44AD</color> <!-- Plum Primary -->
+    <color name="primary_light">#E8D5F2</color> <!-- Light Plum -->
+    <color name="primary_dark">#6A2C87</color> <!-- Darker Plum -->
 
     <color name="secondary">#F0F2F5</color>
     <color name="secondary_light">#E5E7EB</color>
 
-    <color name="accent">#FF8A7A</color> <!-- Warm Coral -->
+    <color name="accent">#BB8FCE</color> <!-- Plum Accent -->
 
     <color name="error">#D93B3B</color>
 
-    <color name="background">#D4E3FB</color> <!-- New Background: Light Blue -->
+    <color name="background">#FDFCFE</color> <!-- Plum Light Background -->
     <color name="surface">#FFFFFF</color> <!-- Pure white for cards -->
 
     <color name="text_on_gradient">#FFFFFF</color> <!-- White for text on gradient -->
 
-    <color name="text_on_card">#000000</color> <!-- Black for text on cards -->
-    <color name="text_primary">#FFFFFF</color> <!-- White -->
-    <color name="text_secondary">#B3FFFFFF</color> <!-- White 70% -->
-    <color name="text_hint">#C7C7CD</color>
+    <color name="text_on_card">#2D132C</color> <!-- Plum Dark Text -->
+    <color name="text_primary">#2D132C</color> <!-- Main Text Light -->
+    <color name="text_secondary">#6A5C6E</color> <!-- Secondary Text Light -->
+    <color name="text_hint">#9E9E9E</color>
 
     <color name="card_background">#FFFFFF</color>
-    <color name="card_border">#EAEAEA</color>
+    <color name="card_border">#E8D5F2</color>
     <color name="divider">#E0E0E0</color>
 
-    <color name="placeholder_background">#E8EAF6</color> <!-- Soft Gray for placeholders -->
-    <color name="selected_day_background">#E8EAF6</color> <!-- Soft Gray for selected day -->
+    <color name="placeholder_background">#F5EFFF</color> <!-- Soft Plum for placeholders -->
+    <color name="selected_day_background">#E8D5F2</color> <!-- Soft Plum for selected day -->
 </resources>

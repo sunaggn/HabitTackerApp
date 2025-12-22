@@ -52,7 +52,7 @@ public class MonthlyCalendarFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
-        applyThemeBackground(view);
+        // Theme is now handled by Material3 DayNight
         
         monthViewPager = view.findViewById(R.id.month_view_pager);
         menuButton = view.findViewById(R.id.menu_button);
@@ -131,19 +131,5 @@ public class MonthlyCalendarFragment extends Fragment {
         }
     }
 
-    private void applyThemeBackground(View view) {
-        android.content.SharedPreferences preferences = requireContext().getSharedPreferences("app_settings", android.content.Context.MODE_PRIVATE);
-        String theme = preferences.getString("app_mode", "Purple");
-        int backgroundRes;
-        if ("Green".equals(theme)) {
-            backgroundRes = R.drawable.gradient_background_green;
-        } else {
-            backgroundRes = R.drawable.gradient_background_vibrant;
-        }
-        View rootView = view.getRootView();
-        if (rootView != null) {
-            rootView.setBackgroundResource(backgroundRes);
-        }
-        view.setBackgroundResource(backgroundRes);
-    }
+    // Theme is now handled by Material3 DayNight
 }

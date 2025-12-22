@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/gradient_background_vibrant"
+    android:background="?android:attr/colorBackground"
     android:fitsSystemWindows="true">
 
     <androidx.core.widget.NestedScrollView
@@ -27,9 +27,9 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/menu"
                 android:src="@drawable/ic_menu_hamburger"
-                app:tint="@color/text_primary"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                    app:tint="?attr/colorOnBackground"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
             <ImageButton
                 android:id="@+id/btn_back_weekly"
@@ -38,9 +38,9 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Back to weekly view"
                 android:src="@android:drawable/ic_menu_revert"
-                app:tint="@color/text_primary"
-                app:layout_constraintStart_toEndOf="@id/menu_button"
-                app:layout_constraintTop_toTopOf="parent" />
+                    app:tint="?attr/colorOnBackground"
+                    app:layout_constraintStart_toEndOf="@id/menu_button"
+                    app:layout_constraintTop_toTopOf="parent" />
 
             <LinearLayout
                 android:id="@+id/day_navigation_boxes"
@@ -61,7 +61,7 @@
                     android:text="M"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/black"
+                    android:textColor="?attr/colorOnBackground"
                     android:padding="4dp"
                     android:clickable="true"
                     android:focusable="true" />
@@ -75,7 +75,7 @@
                     android:text="T"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/black"
+                    android:textColor="?attr/colorOnBackground"
                     android:layout_marginStart="2dp"
                     android:padding="4dp"
                     android:clickable="true"
@@ -90,7 +90,7 @@
                     android:text="W"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/black"
+                    android:textColor="?attr/colorOnBackground"
                     android:layout_marginStart="2dp"
                     android:padding="4dp"
                     android:clickable="true"
@@ -105,7 +105,7 @@
                     android:text="T"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/black"
+                    android:textColor="?attr/colorOnBackground"
                     android:layout_marginStart="2dp"
                     android:padding="4dp"
                     android:clickable="true"
@@ -120,7 +120,7 @@
                     android:text="F"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/black"
+                    android:textColor="?attr/colorOnBackground"
                     android:layout_marginStart="2dp"
                     android:padding="4dp"
                     android:clickable="true"
@@ -135,7 +135,7 @@
                     android:text="S"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/black"
+                    android:textColor="?attr/colorOnBackground"
                     android:layout_marginStart="2dp"
                     android:padding="4dp"
                     android:clickable="true"
@@ -150,7 +150,7 @@
                     android:text="S"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/black"
+                    android:textColor="?attr/colorOnBackground"
                     android:layout_marginStart="2dp"
                     android:padding="4dp"
                     android:clickable="true"
@@ -175,7 +175,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/calendar"
                     android:src="@android:drawable/ic_menu_today"
-                    app:tint="@color/white" />
+                    app:tint="?attr/colorPrimary" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -190,7 +190,8 @@
                         android:text="TODAY"
                         android:textSize="24sp"
                         android:textStyle="bold"
-                        android:textColor="@color/white" />
+                        android:textColor="?attr/colorOnBackground"
+                        android:fontFamily="sans-serif-medium" />
 
                     <TextView
                         android:id="@+id/date_text"
@@ -198,7 +199,7 @@
                         android:layout_height="wrap_content"
                         android:text="16 December"
                         android:textSize="17sp"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginTop="4dp"
                         android:letterSpacing="0.01" />
 
@@ -213,10 +214,11 @@
                 android:text="😐"
                 android:textSize="24sp"
                 android:background="@drawable/rounded_card"
-                android:textColor="@color/text_on_card"
+                android:textColor="?attr/colorOnSurface"
                 android:padding="0dp"
                 android:gravity="center"
-                android:backgroundTint="@color/white"
+                android:backgroundTint="?attr/colorSurface"
+                app:cornerRadius="24dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/date_calendar_container" />
 
@@ -227,10 +229,10 @@
                 android:text="⏰"
                 android:textSize="28sp"
                 android:background="@drawable/rounded_button"
-                android:textColor="@android:color/white"
+                android:textColor="?attr/colorOnPrimary"
                 android:padding="0dp"
                 android:gravity="center"
-                android:backgroundTint="@color/primary"
+                android:backgroundTint="?attr/colorPrimary"
                 app:cornerRadius="28dp"
                 android:layout_marginTop="8dp"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -242,9 +244,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:text="Habits"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnBackground"
                 android:textSize="20sp"
                 android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/date_calendar_container" />
 
@@ -262,9 +265,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:text="Today's Photo"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnBackground"
                 android:textSize="20sp"
                 android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/habits_recycler_view" />
 
@@ -274,11 +278,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:minHeight="56dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:strokeWidth="0.5dp"
-                app:strokeColor="@color/card_border"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="?attr/colorSurface"
+                app:strokeWidth="0dp"
                 app:layout_constraintTop_toBottomOf="@id/photo_title">
 
                 <FrameLayout
@@ -317,7 +320,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Tap to add photo"
-                            android:textColor="@color/text_on_card"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp" />
 
                     </LinearLayout>
@@ -332,9 +335,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:text="To-Do's"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnBackground"
                 android:textSize="20sp"
                 android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/photo_card" />
 
@@ -344,9 +348,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:minHeight="56dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/placeholder_background"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:layout_constraintTop_toBottomOf="@id/todos_title">
 
                 <LinearLayout
@@ -371,7 +375,7 @@
                         android:layout_weight="1"
                         android:text="Tap to add todo"
                         android:textSize="16sp"
-                        android:textColor="@color/text_on_card" />
+                        android:textColor="?attr/colorOnSurface" />
 
                 </LinearLayout>
 
@@ -391,9 +395,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:text="Events"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnBackground"
                 android:textSize="20sp"
                 android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/todos_recycler_view" />
 
@@ -403,9 +408,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:minHeight="56dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/placeholder_background"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:layout_constraintTop_toBottomOf="@id/events_title">
 
                 <LinearLayout
@@ -431,7 +436,7 @@
                         android:layout_weight="1"
                         android:text="Tap to add event"
                         android:textSize="16sp"
-                        android:textColor="@color/text_on_card" />
+                        android:textColor="?attr/colorOnSurface" />
 
                 </LinearLayout>
 
@@ -451,9 +456,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:text="Journal"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnBackground"
                 android:textSize="20sp"
                 android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/events_recycler_view" />
 
@@ -463,9 +469,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:minHeight="56dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/placeholder_background"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:layout_constraintTop_toBottomOf="@id/journal_title">
 
                 <LinearLayout
@@ -511,10 +517,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:text="Alarms"
-                android:textColor="@color/text_primary"
-                android:textSize="22sp"
+                android:textColor="?attr/colorOnBackground"
+                android:textSize="20sp"
                 android:fontFamily="sans-serif-medium"
-                android:textStyle="normal"
+                android:textStyle="bold"
                 android:letterSpacing="0.01"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/journals_recycler_view" />

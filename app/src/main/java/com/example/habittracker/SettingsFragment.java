@@ -52,9 +52,9 @@ public class SettingsFragment extends Fragment {
     }
 
     private void loadSettings() {
-        String currentMode = preferences.getString("app_mode", "Purple");
+        // Get current theme mode from preferences
+        String currentMode = preferences.getString("theme_mode", "Light");
         textMode.setText(currentMode);
-        updateBackground(currentMode);
     }
 
     private void setupClickListeners(View view) {
@@ -64,8 +64,8 @@ public class SettingsFragment extends Fragment {
     }
 
     private void showModePicker() {
-        String[] modes = {"Purple", "Green"};
-        String currentMode = preferences.getString("app_mode", "Purple");
+        String[] modes = {"Light", "Dark"};
+        String currentMode = preferences.getString("theme_mode", "Light");
         int selectedIndex = 0;
         for (int i = 0; i < modes.length; i++) {
             if (modes[i].equals(currentMode)) {
@@ -78,33 +78,27 @@ public class SettingsFragment extends Fragment {
                 .setTitle("Select Theme")
                 .setSingleChoiceItems(modes, selectedIndex, (dialog, which) -> {
                     String selectedMode = modes[which];
-                    preferences.edit().putString("app_mode", selectedMode).apply();
+                    preferences.edit().putString("theme_mode", selectedMode).apply();
                     textMode.setText(selectedMode);
-                    updateBackground(selectedMode);
                     dialog.dismiss();
                     
-                    // Update all fragments in MainActivity
-                    if (getActivity() instanceof MainActivity) {
-                        MainActivity activity = (MainActivity) getActivity();
-                        activity.updateTheme(selectedMode);
+                    // Apply theme using AppCompatDelegate
+                    int nightMode;
+                    if ("Dark".equals(selectedMode)) {
+                        nightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES;
+                    } else {
+                        nightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO;
+                    }
+                    androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(nightMode);
+                    
+                    // Recreate activity to apply theme
+                    if (getActivity() != null) {
+                        getActivity().recreate();
                     }
                     
                     Toast.makeText(requireContext(), "Theme changed to " + selectedMode, Toast.LENGTH_SHORT).show();
                 })
                 .show();
-    }
-
-    private void updateBackground(String mode) {
-        View rootView = getView();
-        if (rootView != null) {
-            int backgroundRes;
-            if ("Green".equals(mode)) {
-                backgroundRes = R.drawable.gradient_background_green;
-            } else {
-                backgroundRes = R.drawable.gradient_background_vibrant;
-            }
-            rootView.setBackgroundResource(backgroundRes);
-        }
     }
 
     private void showClearCacheDialog() {

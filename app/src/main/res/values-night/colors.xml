@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Plum Theme Colors - Dark Mode -->
+    <color name="plum_primary">#BB8FCE</color>
+    <color name="plum_bg_dark">#1A161E</color>
+    <color name="plum_card_dark">#251F2B</color>
+    <color name="text_main_dark">#F5EFFF</color>
+
+    <!-- Legacy colors for compatibility -->
+    <color name="primary">#BB8FCE</color> <!-- Plum Primary Dark -->
+    <color name="primary_light">#8E44AD</color> <!-- Medium Plum -->
+    <color name="primary_dark">#6A2C87</color> <!-- Darker Plum -->
+
+    <color name="secondary">#2A2530</color>
+    <color name="secondary_light">#3A3440</color>
+
+    <color name="accent">#BB8FCE</color> <!-- Plum Accent -->
+
+    <color name="error">#D93B3B</color>
+
+    <color name="background">#1A161E</color> <!-- Plum Dark Background -->
+    <color name="surface">#251F2B</color> <!-- Dark card surface -->
+
+    <color name="text_on_gradient">#F5EFFF</color> <!-- Light text for dark gradient -->
+
+    <color name="text_on_card">#F5EFFF</color> <!-- Light Text Dark -->
+    <color name="text_primary">#F5EFFF</color> <!-- Main Text Dark -->
+    <color name="text_secondary">#B8A5C8</color> <!-- Secondary Text Dark -->
+    <color name="text_hint">#6A5C6E</color>
+
+    <color name="card_background">#251F2B</color>
+    <color name="card_border">#3A3440</color>
+    <color name="divider">#3A3440</color>
+
+    <color name="placeholder_background">#2A2530</color> <!-- Dark Plum for placeholders -->
+    <color name="selected_day_background">#3A3440</color> <!-- Dark Plum for selected day -->
+</resources>
+

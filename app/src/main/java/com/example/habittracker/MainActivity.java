@@ -38,6 +38,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Load theme preference before setting content view
+        android.content.SharedPreferences preferences = getSharedPreferences("app_settings", MODE_PRIVATE);
+        String themeMode = preferences.getString("theme_mode", "Light");
+        int nightMode;
+        if ("Dark".equals(themeMode)) {
+            nightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES;
+        } else {
+            nightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO;
+        }
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(nightMode);
+        
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
@@ -173,43 +184,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void updateTheme(String theme) {
-        // Update all visible fragments with new theme
+        // Theme is now handled by Material3 DayNight
+        // This method is kept for compatibility but no longer needed
         android.content.SharedPreferences preferences = getSharedPreferences("app_settings", MODE_PRIVATE);
         preferences.edit().putString("app_mode", theme).apply();
         
-        // Update ViewPager fragments
-        if (viewPager != null && viewPager.getVisibility() == View.VISIBLE) {
-            androidx.viewpager2.adapter.FragmentStateAdapter adapter = 
-                (androidx.viewpager2.adapter.FragmentStateAdapter) viewPager.getAdapter();
-            if (adapter != null) {
-                adapter.notifyDataSetChanged();
-            }
-        }
-        
-        // Update fragment container if visible
-        View fragmentContainer = findViewById(R.id.fragment_container);
-        if (fragmentContainer != null && fragmentContainer.getVisibility() == View.VISIBLE) {
-            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-            if (currentFragment != null && currentFragment.getView() != null) {
-                updateFragmentBackground(currentFragment.getView(), theme);
-            }
-        }
-        
-        // Also update the root view background
-        View rootView = findViewById(android.R.id.content);
-        if (rootView != null) {
-            updateFragmentBackground(rootView, theme);
-        }
-    }
-
-    private void updateFragmentBackground(View view, String theme) {
-        int backgroundRes;
-        if ("Green".equals(theme)) {
-            backgroundRes = R.drawable.gradient_background_green;
-        } else {
-            backgroundRes = R.drawable.gradient_background_vibrant;
-        }
-        view.setBackgroundResource(backgroundRes);
+        // Recreate activity to apply theme changes
+        recreate();
     }
 
     public void navigateToDate(String date) {

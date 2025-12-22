@@ -107,7 +107,7 @@ public class TodayFragment extends Fragment implements RefreshListener {
         super.onViewCreated(view, savedInstanceState);
 
         // Apply theme background
-        applyThemeBackground(view);
+        // Theme is now handled by Material3 DayNight
 
         todayText = view.findViewById(R.id.today_text);
         dateText = view.findViewById(R.id.date_text);
@@ -157,27 +157,8 @@ public class TodayFragment extends Fragment implements RefreshListener {
     public void onResume() {
         super.onResume();
         // Apply theme background in case it changed
-        if (getView() != null) {
-            applyThemeBackground(getView());
-        }
         // Refresh all data when fragment becomes visible
         onRefresh();
-    }
-
-    private void applyThemeBackground(View view) {
-        android.content.SharedPreferences preferences = requireContext().getSharedPreferences("app_settings", android.content.Context.MODE_PRIVATE);
-        String theme = preferences.getString("app_mode", "Purple");
-        int backgroundRes;
-        if ("Green".equals(theme)) {
-            backgroundRes = R.drawable.gradient_background_green;
-        } else {
-            backgroundRes = R.drawable.gradient_background_vibrant;
-        }
-        View rootView = view.getRootView();
-        if (rootView != null) {
-            rootView.setBackgroundResource(backgroundRes);
-        }
-        view.setBackgroundResource(backgroundRes);
     }
 
     @Override
