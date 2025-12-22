@@ -22,13 +22,13 @@ public class AddPhotoDialog extends DialogFragment {
     private HabitTrackerDatabase database;
     private EditText editCaption;
     private String photoPath = "";
-    private ActionBottomSheet.RefreshListener refreshListener;
+    private RefreshListener refreshListener;
 
     public void setDate(String date) {
         this.date = date;
     }
 
-    public void setRefreshListener(ActionBottomSheet.RefreshListener listener) {
+    public void setRefreshListener(RefreshListener listener) {
         this.refreshListener = listener;
     }
 
@@ -91,4 +91,3 @@ public class AddPhotoDialog extends DialogFragment {
         }
     }
 }
-

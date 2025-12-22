@@ -18,6 +18,19 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <TextView
+            android:id="@+id/my_habits_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="My Habits"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginStart="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btn_back"
+            app:layout_constraintBottom_toTopOf="@id/habits_recycler_view" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/habits_recycler_view"
             android:layout_width="match_parent"
@@ -26,7 +39,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/btn_back" />
+            app:layout_constraintTop_toBottomOf="@id/my_habits_title" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -35,9 +48,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
+        android:layout_margin="32dp"
         android:src="@android:drawable/ic_input_add"
         app:tint="@android:color/white" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
-

@@ -254,8 +254,6 @@ public class WeeklyViewFragment extends Fragment {
             holder.todoCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 database.updateTodoCompletion(todo.id, isChecked);
             });
-            
-            holder.btnDelete.setVisibility(View.GONE); // Hide delete in weekly view
         }
 
         @Override
@@ -266,13 +264,11 @@ public class WeeklyViewFragment extends Fragment {
         class TodoViewHolder extends RecyclerView.ViewHolder {
             TextView todoTitle;
             android.widget.CheckBox todoCheckbox;
-            android.widget.ImageView btnDelete;
 
             TodoViewHolder(@NonNull View itemView) {
                 super(itemView);
                 todoTitle = itemView.findViewById(R.id.todo_title);
                 todoCheckbox = itemView.findViewById(R.id.todo_checkbox);
-                btnDelete = itemView.findViewById(R.id.btn_delete_todo);
             }
         }
     }
@@ -297,8 +293,6 @@ public class WeeklyViewFragment extends Fragment {
             EventItem event = events.get(position);
             holder.eventTitle.setText(event.title);
             holder.eventTime.setText(event.time != null ? event.time : "");
-            
-            holder.btnDelete.setVisibility(View.GONE); // Hide delete in weekly view
         }
 
         @Override
@@ -309,13 +303,11 @@ public class WeeklyViewFragment extends Fragment {
         class EventViewHolder extends RecyclerView.ViewHolder {
             TextView eventTitle;
             TextView eventTime;
-            android.widget.ImageView btnDelete;
 
             EventViewHolder(@NonNull View itemView) {
                 super(itemView);
                 eventTitle = itemView.findViewById(R.id.event_title);
                 eventTime = itemView.findViewById(R.id.event_time);
-                btnDelete = itemView.findViewById(R.id.btn_delete_event);
             }
         }
     }

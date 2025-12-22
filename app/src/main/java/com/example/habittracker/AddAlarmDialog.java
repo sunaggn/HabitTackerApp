@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TimePicker;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,13 +21,13 @@ public class AddAlarmDialog extends DialogFragment {
     private EditText editTitle;
     private Button btnTime;
     private String selectedTime = "";
-    private ActionBottomSheet.RefreshListener refreshListener;
+    private RefreshListener refreshListener;
 
     public void setDate(String date) {
         this.date = date;
     }
 
-    public void setRefreshListener(ActionBottomSheet.RefreshListener listener) {
+    public void setRefreshListener(RefreshListener listener) {
         this.refreshListener = listener;
     }
 
@@ -61,15 +60,12 @@ public class AddAlarmDialog extends DialogFragment {
                 .setTitle("Add Alarm")
                 .setPositiveButton("Save", (dialog, which) -> {
                     String title = editTitle.getText().toString().trim();
-                    if (TextUtils.isEmpty(title)) {
-                        title = "Alarm";
-                    }
-                    if (!TextUtils.isEmpty(selectedTime)) {
+                    if (!TextUtils.isEmpty(title) && !TextUtils.isEmpty(selectedTime)) {
                         database.insertAlarm(date, selectedTime, title);
                         Toast.makeText(requireContext(), "Alarm added", Toast.LENGTH_SHORT).show();
-                        if (refreshListener != null) {
-                            refreshListener.onRefresh();
-                        }
+                        // if (refreshListener != null) { // No refresh needed for alarms yet
+                        //     refreshListener.onRefresh();
+                        // }
                     }
                 })
                 .setNegativeButton("Cancel", null);
@@ -77,4 +73,3 @@ public class AddAlarmDialog extends DialogFragment {
         return builder.create();
     }
 }
-

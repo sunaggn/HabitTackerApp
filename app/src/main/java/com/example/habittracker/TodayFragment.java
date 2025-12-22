@@ -1,5 +1,6 @@
 package com.example.habittracker;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,9 +14,11 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -33,7 +36,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-public class TodayFragment extends Fragment {
+public class TodayFragment extends Fragment implements RefreshListener {
     private static final String ARG_DATE = "date";
     private static final int REQUEST_IMAGE_PICK = 1;
     private static final int REQUEST_IMAGE_CAPTURE = 2;
@@ -66,6 +69,7 @@ public class TodayFragment extends Fragment {
     private LinearLayout photoPlaceholderContainer;
     private MaterialCardView todoPlaceholderCard;
     private MaterialCardView eventPlaceholderCard;
+    private MaterialCardView journalPlaceholderCard;
     private LinearLayout dayNavigationBoxes;
 
     private String[] moods = {"Very Sad", "Sad", "Neutral", "Happy", "Very Happy"};
@@ -125,6 +129,7 @@ public class TodayFragment extends Fragment {
         photoPlaceholderContainer = view.findViewById(R.id.photo_placeholder_container);
         todoPlaceholderCard = view.findViewById(R.id.todo_placeholder_card);
         eventPlaceholderCard = view.findViewById(R.id.event_placeholder_card);
+        journalPlaceholderCard = view.findViewById(R.id.journal_placeholder_card);
         dayNavigationBoxes = view.findViewById(R.id.day_navigation_boxes);
 
         setupDateDisplay();
@@ -142,12 +147,12 @@ public class TodayFragment extends Fragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
+    public void onRefresh() {
         loadHabits();
         loadTodos();
         loadEvents();
         loadJournals();
+        loadPhoto();
     }
 
     private void setupDateDisplay() {
@@ -155,10 +160,10 @@ public class TodayFragment extends Fragment {
         try {
             Calendar cal = Calendar.getInstance();
             cal.setTime(sdf.parse(currentDate));
-            
-            SimpleDateFormat displayFormat = new SimpleDateFormat("d MMMM", Locale.ENGLISH);
+
+            SimpleDateFormat displayFormat = new SimpleDateFormat("EEEE, d MMMM", Locale.ENGLISH);
             dateText.setText(displayFormat.format(cal.getTime()));
-            
+
             Calendar today = Calendar.getInstance();
             if (cal.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
                 cal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
@@ -177,51 +182,44 @@ public class TodayFragment extends Fragment {
         try {
             Calendar currentCal = Calendar.getInstance();
             currentCal.setTime(sdf.parse(currentDate));
-            
-            // Get the start of the week (Monday) for the current date
+
             int dayOfWeek = currentCal.get(Calendar.DAY_OF_WEEK);
             int daysFromMonday = (dayOfWeek == Calendar.SUNDAY) ? 6 : dayOfWeek - Calendar.MONDAY;
             Calendar weekStart = (Calendar) currentCal.clone();
             weekStart.add(Calendar.DAY_OF_YEAR, -daysFromMonday);
-            
-            // Set up all 7 day buttons
+
             TextView[] dayButtons = {dayMonday, dayTuesday, dayWednesday, dayThursday, dayFriday, daySaturday, daySunday};
-            
+
             Calendar today = Calendar.getInstance();
             today.set(Calendar.HOUR_OF_DAY, 0);
             today.set(Calendar.MINUTE, 0);
             today.set(Calendar.SECOND, 0);
             today.set(Calendar.MILLISECOND, 0);
-            
+
             for (int i = 0; i < 7; i++) {
                 Calendar dayCal = (Calendar) weekStart.clone();
                 dayCal.add(Calendar.DAY_OF_YEAR, i);
-                
-                // Calculate offset from current date
+
                 long diff = dayCal.getTimeInMillis() - currentCal.getTimeInMillis();
                 final int dayOffset = (int) (diff / (1000 * 60 * 60 * 24));
-                
-                // Highlight current day
+
                 boolean isCurrentDay = dayCal.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
                                       dayCal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR);
-                
-                // Highlight if it's the displayed date
+
                 boolean isDisplayedDate = dayCal.get(Calendar.YEAR) == currentCal.get(Calendar.YEAR) &&
                                          dayCal.get(Calendar.DAY_OF_YEAR) == currentCal.get(Calendar.DAY_OF_YEAR);
-                
+
                 if (isCurrentDay) {
-                    // Today - darker purple with white text
                     dayButtons[i].setBackgroundResource(R.drawable.day_button_today);
                     dayButtons[i].setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
                 } else if (isDisplayedDate) {
-                    // Selected day - lighter purple with white text
                     dayButtons[i].setBackgroundResource(R.drawable.day_button_selected);
                     dayButtons[i].setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
                 } else {
                     dayButtons[i].setBackgroundResource(R.drawable.rounded_card);
                     dayButtons[i].setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary));
                 }
-                
+
                 dayButtons[i].setOnClickListener(v -> navigateToDay(dayOffset));
             }
         } catch (Exception e) {
@@ -236,7 +234,7 @@ public class TodayFragment extends Fragment {
             cal.setTime(sdf.parse(currentDate));
             cal.add(Calendar.DAY_OF_YEAR, offset);
             String newDate = sdf.format(cal.getTime());
-            
+
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).navigateToDate(newDate);
             }
@@ -248,15 +246,14 @@ public class TodayFragment extends Fragment {
     private void setupMoodSlider() {
         btnMood.setOnClickListener(v -> {
             MoodDialog dialog = new MoodDialog();
-            
-            // Load current mood if exists
+
             android.database.Cursor cursor = database.getMoodForDate(currentDate);
             if (cursor.moveToFirst()) {
                 String currentMood = cursor.getString(cursor.getColumnIndexOrThrow("mood_type"));
                 dialog.setInitialMood(currentMood);
             }
             cursor.close();
-            
+
             dialog.setMoodSelectedListener((mood, feelings) -> {
                 String feelingTags = String.join(",", feelings);
                 saveMood(mood, feelingTags);
@@ -265,7 +262,7 @@ public class TodayFragment extends Fragment {
             dialog.show(getParentFragmentManager(), "mood_dialog");
         });
     }
-    
+
     private void updateMoodButton(String mood) {
         int index = -1;
         for (int i = 0; i < moods.length; i++) {
@@ -301,15 +298,13 @@ public class TodayFragment extends Fragment {
 
     private void setupPhotoCard() {
         photoCard.setOnClickListener(v -> {
-            androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext());
+            AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
             builder.setTitle("Add Photo")
                     .setItems(new String[]{"Galeriden Seç", "Kamera ile Çek"}, (dialog, which) -> {
                         if (which == 0) {
-                            // Galeriden seç
                             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                             startActivityForResult(intent, REQUEST_IMAGE_PICK);
                         } else if (which == 1) {
-                            // Kamera ile çek
                             checkCameraPermissionAndOpen();
                         }
                     })
@@ -317,10 +312,10 @@ public class TodayFragment extends Fragment {
                     .show();
         });
     }
-    
+
     private void checkCameraPermissionAndOpen() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.CAMERA) 
+            if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.CAMERA)
                     != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{android.Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
                 return;
@@ -328,7 +323,7 @@ public class TodayFragment extends Fragment {
         }
         openCamera();
     }
-    
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -336,57 +331,48 @@ public class TodayFragment extends Fragment {
             if (grantResults.length > 0 && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 openCamera();
             } else {
-                android.widget.Toast.makeText(requireContext(), "Kamera izni gerekli", android.widget.Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Kamera izni gerekli", Toast.LENGTH_SHORT).show();
             }
         }
     }
-    
+
     private void openCamera() {
         try {
             File imagesDir = new File(requireContext().getFilesDir(), "images");
             if (!imagesDir.exists()) {
-                boolean created = imagesDir.mkdirs();
-                if (!created && !imagesDir.exists()) {
-                    android.widget.Toast.makeText(requireContext(), "Klasör oluşturulamadı", android.widget.Toast.LENGTH_SHORT).show();
+                if (!imagesDir.mkdirs()) {
+                    Toast.makeText(requireContext(), "Klasör oluşturulamadı", Toast.LENGTH_SHORT).show();
                     return;
                 }
             }
-            
+
             File imageFile = new File(imagesDir, "photo_" + currentDate + "_" + System.currentTimeMillis() + ".jpg");
             cameraImagePath = imageFile.getAbsolutePath();
-            
-            try {
-                cameraImageUri = androidx.core.content.FileProvider.getUriForFile(
-                    requireContext(),
-                    requireContext().getPackageName() + ".fileprovider",
-                    imageFile
-                );
-            } catch (IllegalArgumentException e) {
-                android.util.Log.e("Camera", "FileProvider error: " + e.getMessage());
-                android.widget.Toast.makeText(requireContext(), "FileProvider hatası: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
-                return;
-            }
-            
+
+            cameraImageUri = androidx.core.content.FileProvider.getUriForFile(
+                requireContext(),
+                requireContext().getPackageName() + ".fileprovider",
+                imageFile
+            );
+
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri);
             intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            
-            // Grant permissions to camera apps
-            java.util.List<android.content.pm.ResolveInfo> cameraActivities = requireContext().getPackageManager()
+
+            List<android.content.pm.ResolveInfo> cameraActivities = requireContext().getPackageManager()
                     .queryIntentActivities(intent, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY);
             for (android.content.pm.ResolveInfo activity : cameraActivities) {
                 requireContext().grantUriPermission(activity.activityInfo.packageName, cameraImageUri,
                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
             }
-            
+
             if (intent.resolveActivity(requireContext().getPackageManager()) != null) {
                 startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
             } else {
-                android.widget.Toast.makeText(requireContext(), "Kamera uygulaması bulunamadı", android.widget.Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Kamera uygulaması bulunamadı", Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
-            android.util.Log.e("Camera", "Error opening camera: " + e.getMessage(), e);
-            android.widget.Toast.makeText(requireContext(), "Kamera açılamadı: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
+            Toast.makeText(requireContext(), "Kamera açılamadı: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -394,24 +380,24 @@ public class TodayFragment extends Fragment {
         android.database.Cursor cursor = database.getHabitsForDate(currentDate);
         List<HabitItem> habits = new ArrayList<>();
         java.util.Set<Long> seenHabitIds = new java.util.HashSet<>();
-        
+
         while (cursor.moveToNext()) {
             long habitId = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
-            
-            // Skip if we've already seen this habit ID (prevent duplicates)
+
             if (seenHabitIds.contains(habitId)) {
                 continue;
             }
             seenHabitIds.add(habitId);
-            
+
             String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
             String category = cursor.getString(cursor.getColumnIndexOrThrow("category"));
-            int completed = cursor.getColumnIndex("completed") >= 0 ? 
+            String icon = cursor.getString(cursor.getColumnIndexOrThrow("icon"));
+            @SuppressLint("Range") int completed = cursor.getColumnIndex("completed") >= 0 ?
                 cursor.getInt(cursor.getColumnIndex("completed")) : 0;
-            habits.add(new HabitItem(habitId, name, category, completed == 1));
+            habits.add(new HabitItem(habitId, name, category, icon, completed == 1));
         }
         cursor.close();
-        
+
         HabitAdapter adapter = new HabitAdapter(habits);
         habitsRecyclerView.setAdapter(adapter);
     }
@@ -419,7 +405,7 @@ public class TodayFragment extends Fragment {
     private void loadTodos() {
         android.database.Cursor cursor = database.getTodosForDate(currentDate);
         List<TodoItem> todos = new ArrayList<>();
-        
+
         while (cursor.moveToNext()) {
             long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
             String title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
@@ -428,22 +414,14 @@ public class TodayFragment extends Fragment {
             todos.add(new TodoItem(id, title, description, completed == 1));
         }
         cursor.close();
-        
-        // Todo placeholder is always visible
+
         todoPlaceholderCard.setOnClickListener(v -> {
             AddTodoDialog dialog = new AddTodoDialog();
             dialog.setDate(currentDate);
-            dialog.setRefreshListener(() -> {
-                loadHabits();
-                loadTodos();
-                loadEvents();
-                loadJournals();
-                loadPhoto();
-            });
+            dialog.setRefreshListener(this);
             dialog.show(getParentFragmentManager(), "add_todo");
         });
-        
-        // Show todos if any, hide RecyclerView if empty
+
         if (todos.isEmpty()) {
             todosRecyclerView.setVisibility(View.GONE);
         } else {
@@ -456,7 +434,7 @@ public class TodayFragment extends Fragment {
     private void loadEvents() {
         android.database.Cursor cursor = database.getEventsForDate(currentDate);
         List<EventItem> events = new ArrayList<>();
-        
+
         while (cursor.moveToNext()) {
             long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
             String title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
@@ -465,22 +443,14 @@ public class TodayFragment extends Fragment {
             events.add(new EventItem(id, title, description, time));
         }
         cursor.close();
-        
-        // Event placeholder is always visible
+
         eventPlaceholderCard.setOnClickListener(v -> {
             AddEventDialog dialog = new AddEventDialog();
             dialog.setDate(currentDate);
-            dialog.setRefreshListener(() -> {
-                loadHabits();
-                loadTodos();
-                loadEvents();
-                loadJournals();
-                loadPhoto();
-            });
+            dialog.setRefreshListener(this);
             dialog.show(getParentFragmentManager(), "add_event");
         });
-        
-        // Show events if any, hide RecyclerView if empty
+
         if (events.isEmpty()) {
             eventsRecyclerView.setVisibility(View.GONE);
         } else {
@@ -493,16 +463,30 @@ public class TodayFragment extends Fragment {
     private void loadJournals() {
         android.database.Cursor cursor = database.getJournalForDate(currentDate);
         List<JournalItem> journals = new ArrayList<>();
-        
+
         while (cursor.moveToNext()) {
             long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
             String content = cursor.getString(cursor.getColumnIndexOrThrow("content"));
             journals.add(new JournalItem(id, content));
         }
         cursor.close();
-        
-        JournalAdapter adapter = new JournalAdapter(journals);
-        journalsRecyclerView.setAdapter(adapter);
+
+        journalPlaceholderCard.setOnClickListener(v -> {
+            AddJournalEntryDialog dialog = new AddJournalEntryDialog();
+            dialog.setDate(currentDate);
+            dialog.setRefreshListener(this);
+            dialog.show(getParentFragmentManager(), "add_journal");
+        });
+
+        if (journals.isEmpty()) {
+            journalsRecyclerView.setVisibility(View.GONE);
+            journalPlaceholderCard.setVisibility(View.VISIBLE);
+        } else {
+            journalsRecyclerView.setVisibility(View.VISIBLE);
+            journalPlaceholderCard.setVisibility(View.GONE);
+            JournalAdapter adapter = new JournalAdapter(journals);
+            journalsRecyclerView.setAdapter(adapter);
+        }
     }
 
     private void loadPhoto() {
@@ -524,33 +508,28 @@ public class TodayFragment extends Fragment {
         }
         cursor.close();
     }
-    
-    private void showPhotoPreview(android.net.Uri imageUri) {
-        // Show photo preview
+
+    private void showPhotoPreview(Uri imageUri) {
         ViewGroup.LayoutParams previewParams = photoPreview.getLayoutParams();
-        previewParams.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.3); // 30% of screen height
+        previewParams.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.3);
         photoPreview.setLayoutParams(previewParams);
         photoPreview.setImageURI(imageUri);
         photoPreview.setVisibility(View.VISIBLE);
-        
-        // Hide placeholder
+
         photoPlaceholderContainer.setVisibility(View.GONE);
     }
-    
+
     private void showPhotoPlaceholder() {
-        // Hide photo preview
         photoPreview.setVisibility(View.GONE);
-        
-        // Show placeholder
+
         photoPlaceholderContainer.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        
+
         if (requestCode == REQUEST_IMAGE_PICK && resultCode == android.app.Activity.RESULT_OK && data != null && data.getData() != null) {
-            // Galeriden seçilen fotoğraf
             Uri imageUri = data.getData();
             try {
                 File imagesDir = new File(requireContext().getFilesDir(), "images");
@@ -558,7 +537,7 @@ public class TodayFragment extends Fragment {
                     imagesDir.mkdirs();
                 }
                 File imageFile = new File(imagesDir, "photo_" + currentDate + "_" + System.currentTimeMillis() + ".jpg");
-                
+
                 InputStream inputStream = requireContext().getContentResolver().openInputStream(imageUri);
                 FileOutputStream outputStream = new FileOutputStream(imageFile);
                 byte[] buffer = new byte[1024];
@@ -568,16 +547,14 @@ public class TodayFragment extends Fragment {
                 }
                 outputStream.close();
                 inputStream.close();
-                
+
                 String photoPath = imageFile.getAbsolutePath();
                 database.insertPhoto(currentDate, photoPath, "");
                 showPhotoPreview(Uri.fromFile(imageFile));
             } catch (Exception e) {
-                e.printStackTrace();
-                android.widget.Toast.makeText(requireContext(), "Fotoğraf kaydedilemedi", android.widget.Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Fotoğraf kaydedilemedi", Toast.LENGTH_SHORT).show();
             }
         } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == android.app.Activity.RESULT_OK && cameraImagePath != null) {
-            // Kamera ile çekilen fotoğraf
             try {
                 File imageFile = new File(cameraImagePath);
                 if (imageFile.exists()) {
@@ -585,29 +562,15 @@ public class TodayFragment extends Fragment {
                     database.insertPhoto(currentDate, photoPath, "");
                     showPhotoPreview(Uri.fromFile(imageFile));
                 } else {
-                    android.widget.Toast.makeText(requireContext(), "Fotoğraf bulunamadı", android.widget.Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Fotoğraf bulunamadı", Toast.LENGTH_SHORT).show();
                 }
             } catch (Exception e) {
-                e.printStackTrace();
-                android.widget.Toast.makeText(requireContext(), "Fotoğraf kaydedilemedi", android.widget.Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Fotoğraf kaydedilemedi", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
     private void setupButtons() {
-        fabAdd.setOnClickListener(v -> {
-            ActionBottomSheet bottomSheet = new ActionBottomSheet();
-            bottomSheet.setDate(currentDate);
-            bottomSheet.setRefreshListener(() -> {
-                loadHabits();
-                loadTodos();
-                loadEvents();
-                loadJournals();
-                loadPhoto();
-            });
-            bottomSheet.show(getParentFragmentManager(), "action_bottom_sheet");
-        });
-
         btnCalendar.setOnClickListener(v -> {
             WeeklyCalendarFragment fragment = new WeeklyCalendarFragment();
             fragment.setSelectedDate(currentDate);
@@ -655,28 +618,29 @@ public class TodayFragment extends Fragment {
         existing.close();
     }
 
-    // Item classes
-    private class HabitItem {
+    public class HabitItem {
         long id;
         String name;
         String category;
+        String icon;
         boolean completed;
 
-        HabitItem(long id, String name, String category, boolean completed) {
+        HabitItem(long id, String name, String category, String icon, boolean completed) {
             this.id = id;
             this.name = name;
             this.category = category;
+            this.icon = icon;
             this.completed = completed;
         }
     }
 
-    private class TodoItem {
-        long id;
-        String title;
-        String description;
-        boolean completed;
+    public class TodoItem {
+        public long id;
+        public String title;
+        public String description;
+        public boolean completed;
 
-        TodoItem(long id, String title, String description, boolean completed) {
+        public TodoItem(long id, String title, String description, boolean completed) {
             this.id = id;
             this.title = title;
             this.description = description;
@@ -684,13 +648,13 @@ public class TodayFragment extends Fragment {
         }
     }
 
-    private class EventItem {
-        long id;
-        String title;
-        String description;
-        String time;
+    public class EventItem {
+        public long id;
+        public String title;
+        public String description;
+        public String time;
 
-        EventItem(long id, String title, String description, String time) {
+        public EventItem(long id, String title, String description, String time) {
             this.id = id;
             this.title = title;
             this.description = description;
@@ -698,17 +662,16 @@ public class TodayFragment extends Fragment {
         }
     }
 
-    private class JournalItem {
-        long id;
-        String content;
+    public class JournalItem {
+        public long id;
+        public String content;
 
-        JournalItem(long id, String content) {
+        public JournalItem(long id, String content) {
             this.id = id;
             this.content = content;
         }
     }
 
-    // Adapters
     private class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHolder> {
         private List<HabitItem> habits;
 
@@ -729,14 +692,20 @@ public class TodayFragment extends Fragment {
             HabitItem habit = habits.get(position);
             holder.habitName.setText(habit.name);
             holder.habitCategory.setText(habit.category);
+            holder.habitIcon.setText(habit.icon);
+            holder.habitCheckbox.setOnCheckedChangeListener(null);
             holder.habitCheckbox.setChecked(habit.completed);
-            holder.habitIcon.setText(database.getCategoryIcon(habit.category));
-            
+
             holder.habitCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (isChecked) {
                     database.insertHabitEntry(habit.id, currentDate, true);
-                } else {
-                    database.updateHabitEntry(habit.id, currentDate, false);
+
+                    int pos = holder.getAdapterPosition();
+                    if (pos != RecyclerView.NO_POSITION) {
+                        habits.remove(pos);
+                        notifyItemRemoved(pos);
+                        notifyItemRangeChanged(pos, habits.size());
+                    }
                 }
             });
         }
@@ -780,23 +749,41 @@ public class TodayFragment extends Fragment {
         @Override
         public void onBindViewHolder(@NonNull TodoViewHolder holder, int position) {
             TodoItem todo = todos.get(position);
-            holder.todoTitle.setText(todo.title);
+            holder.todoCheckbox.setOnCheckedChangeListener(null);
             holder.todoCheckbox.setChecked(todo.completed);
-            
+            holder.todoTitle.setText(todo.title);
+
             holder.todoCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                database.updateTodoCompletion(todo.id, isChecked);
+                if (isChecked) {
+                    database.updateTodoCompletion(todo.id, true);
+
+                    int pos = holder.getAdapterPosition();
+                    if (pos != RecyclerView.NO_POSITION) {
+                        todos.remove(pos);
+                        notifyItemRemoved(pos);
+                        notifyItemRangeChanged(pos, todos.size());
+                    }
+                }
             });
-            
-            holder.btnDelete.setOnClickListener(v -> {
-                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext());
-                builder.setTitle("Delete Todo")
-                        .setMessage("Are you sure you want to delete this todo?")
-                        .setPositiveButton("Delete", (dialog, which) -> {
+
+            holder.itemView.setOnClickListener(v -> {
+                AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+                builder.setItems(new CharSequence[]{"Edit", "Delete"}, (dialog, which) -> {
+                    switch (which) {
+                        case 0: // Edit
+                            AddTodoDialog editDialog = new AddTodoDialog();
+                            editDialog.setDate(currentDate);
+                            editDialog.setTodoItem(todo);
+                            editDialog.setRefreshListener(TodayFragment.this);
+                            editDialog.show(getParentFragmentManager(), "edit_todo");
+                            break;
+                        case 1: // Delete
                             database.deleteTodoItem(todo.id);
                             loadTodos();
-                        })
-                        .setNegativeButton("Cancel", null)
-                        .show();
+                            break;
+                    }
+                });
+                builder.show();
             });
         }
 
@@ -808,13 +795,11 @@ public class TodayFragment extends Fragment {
         class TodoViewHolder extends RecyclerView.ViewHolder {
             CheckBox todoCheckbox;
             TextView todoTitle;
-            ImageView btnDelete;
 
             TodoViewHolder(@NonNull View itemView) {
                 super(itemView);
                 todoCheckbox = itemView.findViewById(R.id.todo_checkbox);
                 todoTitle = itemView.findViewById(R.id.todo_title);
-                btnDelete = itemView.findViewById(R.id.btn_delete_todo);
             }
         }
     }
@@ -839,17 +824,26 @@ public class TodayFragment extends Fragment {
             EventItem event = events.get(position);
             holder.eventTitle.setText(event.title);
             holder.eventTime.setText(event.time != null ? event.time : "");
-            
-            holder.btnDelete.setOnClickListener(v -> {
-                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext());
-                builder.setTitle("Delete Event")
-                        .setMessage("Are you sure you want to delete this event?")
-                        .setPositiveButton("Delete", (dialog, which) -> {
+
+            holder.itemView.setOnLongClickListener(v -> {
+                AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+                builder.setItems(new CharSequence[]{"Edit", "Delete"}, (dialog, which) -> {
+                    switch (which) {
+                        case 0: // Edit
+                            AddEventDialog editDialog = new AddEventDialog();
+                            editDialog.setDate(currentDate);
+                            editDialog.setEventItem(event);
+                            editDialog.setRefreshListener(TodayFragment.this);
+                            editDialog.show(getParentFragmentManager(), "edit_event");
+                            break;
+                        case 1: // Delete
                             database.deleteEvent(event.id);
                             loadEvents();
-                        })
-                        .setNegativeButton("Cancel", null)
-                        .show();
+                            break;
+                    }
+                });
+                builder.show();
+                return true;
             });
         }
 
@@ -861,13 +855,11 @@ public class TodayFragment extends Fragment {
         class EventViewHolder extends RecyclerView.ViewHolder {
             TextView eventTitle;
             TextView eventTime;
-            ImageView btnDelete;
 
             EventViewHolder(@NonNull View itemView) {
                 super(itemView);
                 eventTitle = itemView.findViewById(R.id.event_title);
                 eventTime = itemView.findViewById(R.id.event_time);
-                btnDelete = itemView.findViewById(R.id.btn_delete_event);
             }
         }
     }
@@ -891,6 +883,26 @@ public class TodayFragment extends Fragment {
         public void onBindViewHolder(@NonNull JournalViewHolder holder, int position) {
             JournalItem journal = journals.get(position);
             holder.journalContent.setText(journal.content);
+
+            holder.itemView.setOnClickListener(v -> {
+                AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+                builder.setItems(new CharSequence[]{"Edit", "Delete"}, (dialog, which) -> {
+                    switch (which) {
+                        case 0: // Edit
+                            AddJournalEntryDialog editDialog = new AddJournalEntryDialog();
+                            editDialog.setDate(currentDate);
+                            editDialog.setJournalItem(journal);
+                            editDialog.setRefreshListener(TodayFragment.this);
+                            editDialog.show(getParentFragmentManager(), "edit_journal");
+                            break;
+                        case 1: // Delete
+                            database.deleteJournalEntry(journal.id);
+                            loadJournals();
+                            break;
+                    }
+                });
+                builder.show();
+            });
         }
 
         @Override

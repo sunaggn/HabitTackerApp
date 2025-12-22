@@ -232,7 +232,7 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
 
     public Cursor getHabitsForDate(String date) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT DISTINCT h.*, COALESCE(he.completed, 0) as completed FROM " + TABLE_HABITS + " h " +
+        String query = "SELECT h.*, he.completed FROM " + TABLE_HABITS + " h " +
                 "LEFT JOIN " + TABLE_HABIT_ENTRIES + " he ON h.id = he.habit_id AND he.date = ? " +
                 "ORDER BY h.created_date DESC";
         return db.rawQuery(query, new String[]{date});
@@ -302,6 +302,22 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         values.put("photo_path", photoPath);
         return db.insert(TABLE_JOURNAL_ENTRIES, null, values);
     }
+    
+    public long insertJournalEntry(String date, String content) {
+        return insertJournalEntry(date, content, null);
+    }
+
+    public int updateJournalEntry(long id, String content) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("content", content);
+        return db.update(TABLE_JOURNAL_ENTRIES, values, "id = ?", new String[]{String.valueOf(id)});
+    }
+
+    public int deleteJournalEntry(long id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(TABLE_JOURNAL_ENTRIES, "id = ?", new String[]{String.valueOf(id)});
+    }
 
     public Cursor getJournalForDate(String date) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -320,6 +336,20 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return db.insert(TABLE_TODO_ITEMS, null, values);
     }
 
+    public int updateTodoItem(long id, String title, String description, boolean completed) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("title", title);
+        values.put("description", description);
+        values.put("completed", completed ? 1 : 0);
+        return db.update(TABLE_TODO_ITEMS, values, "id = ?", new String[]{String.valueOf(id)});
+    }
+
+    public int deleteTodoItem(long id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(TABLE_TODO_ITEMS, "id = ?", new String[]{String.valueOf(id)});
+    }
+
     public Cursor getTodosForDate(String date) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query(TABLE_TODO_ITEMS, null, "date = ?", new String[]{date}, null, null, "priority DESC, id DESC");
@@ -330,11 +360,6 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put("completed", completed ? 1 : 0);
         return db.update(TABLE_TODO_ITEMS, values, "id = ?", new String[]{String.valueOf(todoId)});
-    }
-
-    public int deleteTodoItem(long todoId) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(TABLE_TODO_ITEMS, "id = ?", new String[]{String.valueOf(todoId)});
     }
 
     // Event methods
@@ -349,14 +374,23 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return db.insert(TABLE_EVENTS, null, values);
     }
 
+    public int updateEvent(long id, String title, String description, String time) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("title", title);
+        values.put("description", description);
+        values.put("time", time);
+        return db.update(TABLE_EVENTS, values, "id = ?", new String[]{String.valueOf(id)});
+    }
+
+    public int deleteEvent(long id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(TABLE_EVENTS, "id = ?", new String[]{String.valueOf(id)});
+    }
+
     public Cursor getEventsForDate(String date) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query(TABLE_EVENTS, null, "date = ?", new String[]{date}, null, null, "time ASC");
-    }
-
-    public int deleteEvent(long eventId) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(TABLE_EVENTS, "id = ?", new String[]{String.valueOf(eventId)});
     }
 
     // Alarm methods
@@ -428,4 +462,3 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return "📝"; // default icon
     }
 }
-

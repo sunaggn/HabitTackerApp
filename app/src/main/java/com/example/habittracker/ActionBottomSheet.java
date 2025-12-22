@@ -1,6 +1,5 @@
 package com.example.habittracker;
 
-import android.app.Dialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,12 +13,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 public class ActionBottomSheet extends BottomSheetDialogFragment {
     private String date;
-    private HabitTrackerDatabase database;
     private RefreshListener refreshListener;
-
-    public interface RefreshListener {
-        void onRefresh();
-    }
 
     public void setDate(String date) {
         this.date = date;
@@ -38,9 +32,7 @@ public class ActionBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        
-        database = new HabitTrackerDatabase(requireContext());
-        
+
         LinearLayout addAlarm = view.findViewById(R.id.action_add_alarm);
         LinearLayout addPhoto = view.findViewById(R.id.action_add_photo);
         LinearLayout addJournal = view.findViewById(R.id.action_add_journal);
@@ -50,7 +42,7 @@ public class ActionBottomSheet extends BottomSheetDialogFragment {
         addAlarm.setOnClickListener(v -> {
             AddAlarmDialog dialog = new AddAlarmDialog();
             dialog.setDate(date);
-            dialog.setRefreshListener(refreshListener);
+            // dialog.setRefreshListener(refreshListener); // Add this back if AddAlarmDialog needs it
             dialog.show(getParentFragmentManager(), "add_alarm");
             dismiss();
         });
@@ -64,7 +56,7 @@ public class ActionBottomSheet extends BottomSheetDialogFragment {
         });
 
         addJournal.setOnClickListener(v -> {
-            AddJournalDialog dialog = new AddJournalDialog();
+            AddJournalEntryDialog dialog = new AddJournalEntryDialog();
             dialog.setDate(date);
             dialog.setRefreshListener(refreshListener);
             dialog.show(getParentFragmentManager(), "add_journal");
@@ -88,4 +80,3 @@ public class ActionBottomSheet extends BottomSheetDialogFragment {
         });
     }
 }
-
