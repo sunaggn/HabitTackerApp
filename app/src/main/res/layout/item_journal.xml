@@ -4,23 +4,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:cardElevation="4dp"
-    app:cardCornerRadius="16dp"
-    android:layout_marginBottom="8dp">
+    app:cardElevation="0dp"
+    app:cardCornerRadius="20dp"
+    app:cardBackgroundColor="@color/card_background"
+    android:layout_marginBottom="12dp"
+    app:cardUseCompatPadding="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="12dp">
+        android:padding="20dp"
+        android:minHeight="64dp">
 
         <TextView
             android:id="@+id/journal_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Journal entry..."
-            android:textSize="14sp"
-            android:maxLines="3"
+            android:textSize="16sp"
+            android:textColor="@color/text_primary"
+            android:lineSpacingExtra="4dp"
+            android:maxLines="4"
             android:ellipsize="end"
+            android:letterSpacing="0.01"
             tools:ignore="MissingConstraints" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

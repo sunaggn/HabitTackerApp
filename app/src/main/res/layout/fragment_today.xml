@@ -27,7 +27,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/menu"
                 android:src="@drawable/ic_menu_hamburger"
-                app:tint="@color/white"
+                app:tint="@color/text_primary"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -38,7 +38,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Back to weekly view"
                 android:src="@android:drawable/ic_menu_revert"
-                app:tint="@color/white"
+                app:tint="@color/text_primary"
                 app:layout_constraintStart_toEndOf="@id/menu_button"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -197,8 +197,10 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="16 December"
-                        android:textSize="18sp"
-                        android:textColor="@color/text_secondary" />
+                        android:textSize="17sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="4dp"
+                        android:letterSpacing="0.01" />
 
                 </LinearLayout>
 
@@ -217,6 +219,22 @@
                 android:backgroundTint="@color/white"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/date_calendar_container" />
+
+            <Button
+                android:id="@+id/btn_alarm"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:text="⏰"
+                android:textSize="28sp"
+                android:background="@drawable/rounded_button"
+                android:textColor="@android:color/white"
+                android:padding="0dp"
+                android:gravity="center"
+                android:backgroundTint="@color/primary"
+                app:cornerRadius="28dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btn_mood" />
 
             <TextView
                 android:id="@+id/habits_title"
@@ -259,6 +277,8 @@
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
                 app:cardBackgroundColor="@color/card_background"
+                app:strokeWidth="0.5dp"
+                app:strokeColor="@color/card_border"
                 app:layout_constraintTop_toBottomOf="@id/photo_title">
 
                 <FrameLayout
@@ -483,6 +503,29 @@
                 android:layout_marginTop="8dp"
                 android:nestedScrollingEnabled="false"
                 app:layout_constraintTop_toBottomOf="@id/journal_placeholder_card" />
+
+            <!-- ✅ ALARMS (ConstraintLayout İÇİNDE olmalı) -->
+            <TextView
+                android:id="@+id/alarms_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="Alarms"
+                android:textColor="@color/text_primary"
+                android:textSize="22sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="normal"
+                android:letterSpacing="0.01"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/journals_recycler_view" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/alarms_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:nestedScrollingEnabled="false"
+                app:layout_constraintTop_toBottomOf="@id/alarms_title" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

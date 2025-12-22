@@ -409,6 +409,11 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return db.query(TABLE_ALARMS, null, "date = ?", new String[]{date}, null, null, "time ASC");
     }
 
+    public int deleteAlarm(long id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(TABLE_ALARMS, "id = ?", new String[]{String.valueOf(id)});
+    }
+
     // Photo methods
     public long insertPhoto(String date, String photoPath, String caption) {
         SQLiteDatabase db = this.getWritableDatabase();

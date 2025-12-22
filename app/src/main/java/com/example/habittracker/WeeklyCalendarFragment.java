@@ -72,14 +72,9 @@ public class WeeklyCalendarFragment extends Fragment {
 
         btnBack.setOnClickListener(v -> {
             // Navigate to monthly calendar
-            MonthlyCalendarFragment fragment = new MonthlyCalendarFragment();
-            if (selectedDate != null) {
-                fragment.setSelectedDate(selectedDate);
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).showMonthlyView();
             }
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, fragment)
-                    .addToBackStack(null)
-                    .commit();
         });
     }
 }

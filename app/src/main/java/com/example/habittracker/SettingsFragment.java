@@ -20,13 +20,7 @@ import java.util.Calendar;
 import java.util.Locale;
 
 public class SettingsFragment extends Fragment {
-    private Switch switchVacationMode;
-    private Switch switchDailyReminder;
-    private TextView textMorningTime;
-    private TextView textAfternoonTime;
-    private TextView textEveningTime;
-    private TextView textReminderTime;
-    private TextView textFirstDay;
+    private TextView textMode;
     private SharedPreferences preferences;
     private HabitTrackerDatabase database;
 
@@ -43,13 +37,7 @@ public class SettingsFragment extends Fragment {
         preferences = requireContext().getSharedPreferences("app_settings", android.content.Context.MODE_PRIVATE);
         database = new HabitTrackerDatabase(requireContext());
         
-        switchVacationMode = view.findViewById(R.id.switch_vacation_mode);
-        switchDailyReminder = view.findViewById(R.id.switch_daily_reminder);
-        textMorningTime = view.findViewById(R.id.text_morning_time);
-        textAfternoonTime = view.findViewById(R.id.text_afternoon_time);
-        textEveningTime = view.findViewById(R.id.text_evening_time);
-        textReminderTime = view.findViewById(R.id.text_reminder_time);
-        textFirstDay = view.findViewById(R.id.text_first_day);
+        textMode = view.findViewById(R.id.text_mode);
         android.widget.ImageButton btnBack = view.findViewById(R.id.btn_back);
         
         btnBack.setOnClickListener(v -> {
@@ -63,67 +51,36 @@ public class SettingsFragment extends Fragment {
     }
 
     private void loadSettings() {
-        switchVacationMode.setChecked(preferences.getBoolean("vacation_mode", false));
-        switchDailyReminder.setChecked(preferences.getBoolean("daily_reminder", true));
-        
-        textMorningTime.setText("Start at " + preferences.getString("morning_start_time", "05:00"));
-        textAfternoonTime.setText("Start at " + preferences.getString("afternoon_start_time", "12:00"));
-        textEveningTime.setText("Start at " + preferences.getString("evening_start_time", "18:00"));
-        textReminderTime.setText(preferences.getString("reminder_time", "07:00"));
-        textFirstDay.setText(preferences.getString("first_day_of_week", "Monday"));
-        
-        switchVacationMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            preferences.edit().putBoolean("vacation_mode", isChecked).apply();
-        });
-        
-        switchDailyReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            preferences.edit().putBoolean("daily_reminder", isChecked).apply();
-        });
+        String currentMode = preferences.getString("app_mode", "Light");
+        textMode.setText(currentMode);
     }
 
     private void setupClickListeners(View view) {
-        view.findViewById(R.id.layout_morning).setOnClickListener(v -> showTimePicker("morning_start_time", textMorningTime, "Start at "));
-        view.findViewById(R.id.layout_afternoon).setOnClickListener(v -> showTimePicker("afternoon_start_time", textAfternoonTime, "Start at "));
-        view.findViewById(R.id.layout_evening).setOnClickListener(v -> showTimePicker("evening_start_time", textEveningTime, "Start at "));
-        view.findViewById(R.id.layout_reminder_time).setOnClickListener(v -> showTimePicker("reminder_time", textReminderTime, ""));
-        view.findViewById(R.id.layout_first_day).setOnClickListener(v -> showDayOfWeekPicker());
+        view.findViewById(R.id.layout_mode).setOnClickListener(v -> showModePicker());
         view.findViewById(R.id.layout_clear_cache).setOnClickListener(v -> showClearCacheDialog());
         view.findViewById(R.id.layout_restart_habits).setOnClickListener(v -> showRestartHabitsDialog());
     }
 
-    private void showTimePicker(String key, TextView textView, String prefix) {
-        String currentTime = preferences.getString(key, "07:00");
-        String[] parts = currentTime.split(":");
-        int hour = Integer.parseInt(parts[0]);
-        int minute = Integer.parseInt(parts[1]);
-        
-        TimePickerDialog timePickerDialog = new TimePickerDialog(requireContext(),
-                (timePicker, hourOfDay, minute1) -> {
-                    String time = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute1);
-                    preferences.edit().putString(key, time).apply();
-                    textView.setText(prefix + time);
-                },
-                hour, minute, true);
-        timePickerDialog.show();
-    }
-
-    private void showDayOfWeekPicker() {
-        String[] days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
-        String currentDay = preferences.getString("first_day_of_week", "Monday");
+    private void showModePicker() {
+        String[] modes = {"Light", "Dark"};
+        String currentMode = preferences.getString("app_mode", "Light");
         int selectedIndex = 0;
-        for (int i = 0; i < days.length; i++) {
-            if (days[i].equals(currentDay)) {
+        for (int i = 0; i < modes.length; i++) {
+            if (modes[i].equals(currentMode)) {
                 selectedIndex = i;
                 break;
             }
         }
         
         new AlertDialog.Builder(requireContext())
-                .setTitle("First Day of Week")
-                .setSingleChoiceItems(days, selectedIndex, (dialog, which) -> {
-                    preferences.edit().putString("first_day_of_week", days[which]).apply();
-                    textFirstDay.setText(days[which]);
+                .setTitle("Select Mode")
+                .setSingleChoiceItems(modes, selectedIndex, (dialog, which) -> {
+                    String selectedMode = modes[which];
+                    preferences.edit().putString("app_mode", selectedMode).apply();
+                    textMode.setText(selectedMode);
                     dialog.dismiss();
+                    // Note: Actual theme change would require app restart or theme recreation
+                    Toast.makeText(requireContext(), "Mode changed to " + selectedMode + ". Restart app to apply.", Toast.LENGTH_LONG).show();
                 })
                 .show();
     }
