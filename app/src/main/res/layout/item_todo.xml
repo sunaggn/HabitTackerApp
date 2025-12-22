@@ -34,7 +34,7 @@
             android:text="To-Do Title"
             android:textSize="17sp"
             android:fontFamily="sans-serif"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/text_on_card"
             android:gravity="center_vertical"
             android:letterSpacing="0.01"
             app:layout_constraintEnd_toEndOf="parent"

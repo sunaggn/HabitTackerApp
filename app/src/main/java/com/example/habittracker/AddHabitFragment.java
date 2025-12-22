@@ -162,18 +162,13 @@ public class AddHabitFragment extends Fragment {
                     repeatType, daysOfWeek, "", endDate, reminderEnabled);
             Toast.makeText(requireContext(), "Habit added", Toast.LENGTH_SHORT).show();
             
-            // Refresh TodayFragment if MainActivity is available
+            // Show ViewPager and refresh TodayFragment if MainActivity is available
             if (getActivity() instanceof MainActivity) {
                 MainActivity activity = (MainActivity) getActivity();
+                // Show ViewPager first
+                activity.showViewPager();
+                // Refresh the current fragment
                 activity.refreshTodayFragment();
-                // Also refresh all fragments in ViewPager
-                if (activity.getViewPager() != null) {
-                    int currentItem = activity.getViewPager().getCurrentItem();
-                    // Refresh current and adjacent fragments
-                    for (int i = Math.max(0, currentItem - 1); i <= Math.min(activity.getViewPager().getAdapter().getItemCount() - 1, currentItem + 1); i++) {
-                        activity.getViewPager().getAdapter().notifyItemChanged(i);
-                    }
-                }
             }
             
             if (getActivity() != null) {
@@ -198,7 +193,7 @@ public class AddHabitFragment extends Fragment {
                 buttons[i].setTextColor(android.graphics.Color.WHITE);
             } else {
                 buttons[i].setBackgroundResource(R.drawable.rounded_button_outline);
-                buttons[i].setTextColor(requireContext().getColor(R.color.text_primary));
+                buttons[i].setTextColor(requireContext().getColor(R.color.primary));
             }
         }
     }

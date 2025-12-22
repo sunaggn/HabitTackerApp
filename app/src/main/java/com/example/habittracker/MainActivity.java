@@ -172,6 +172,46 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return viewPager;
     }
 
+    public void updateTheme(String theme) {
+        // Update all visible fragments with new theme
+        android.content.SharedPreferences preferences = getSharedPreferences("app_settings", MODE_PRIVATE);
+        preferences.edit().putString("app_mode", theme).apply();
+        
+        // Update ViewPager fragments
+        if (viewPager != null && viewPager.getVisibility() == View.VISIBLE) {
+            androidx.viewpager2.adapter.FragmentStateAdapter adapter = 
+                (androidx.viewpager2.adapter.FragmentStateAdapter) viewPager.getAdapter();
+            if (adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
+        }
+        
+        // Update fragment container if visible
+        View fragmentContainer = findViewById(R.id.fragment_container);
+        if (fragmentContainer != null && fragmentContainer.getVisibility() == View.VISIBLE) {
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+            if (currentFragment != null && currentFragment.getView() != null) {
+                updateFragmentBackground(currentFragment.getView(), theme);
+            }
+        }
+        
+        // Also update the root view background
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            updateFragmentBackground(rootView, theme);
+        }
+    }
+
+    private void updateFragmentBackground(View view, String theme) {
+        int backgroundRes;
+        if ("Green".equals(theme)) {
+            backgroundRes = R.drawable.gradient_background_green;
+        } else {
+            backgroundRes = R.drawable.gradient_background_vibrant;
+        }
+        view.setBackgroundResource(backgroundRes);
+    }
+
     public void navigateToDate(String date) {
         // Calculate the position for the given date
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
@@ -199,29 +239,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Refresh the current TodayFragment in ViewPager
         if (viewPager != null && viewPager.getVisibility() == View.VISIBLE && pagerAdapter != null) {
             try {
-                // Try to get fragment from ViewPager2's FragmentStateAdapter
+                // Get the current fragment from ViewPager2
                 int currentItem = viewPager.getCurrentItem();
-                // Use reflection to access the fragment from FragmentStateAdapter
-                // Or simply notify adapter to refresh
-                // For now, let's find fragment from child fragment manager
+                
+                // Find fragment using FragmentManager
                 androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
-                for (Fragment fragment : fm.getFragments()) {
-                    if (fragment instanceof TodayFragment && fragment.isAdded()) {
+                
+                // Try to find TodayFragment in the fragment manager
+                List<Fragment> fragments = fm.getFragments();
+                for (Fragment fragment : fragments) {
+                    if (fragment instanceof TodayFragment && fragment.isAdded() && fragment.isResumed()) {
                         ((TodayFragment) fragment).onRefresh();
                         return;
                     }
                 }
-                // If not found in main fragment manager, try child fragment managers
-                for (Fragment fragment : fm.getFragments()) {
-                    if (fragment != null && fragment.getChildFragmentManager() != null) {
-                        for (Fragment childFragment : fragment.getChildFragmentManager().getFragments()) {
-                            if (childFragment instanceof TodayFragment && childFragment.isAdded()) {
-                                ((TodayFragment) childFragment).onRefresh();
-                                return;
-                            }
-                        }
-                    }
-                }
+                
+                // If not found, try to get from ViewPager2's internal fragment manager
+                // ViewPager2 uses a FragmentManager internally, we need to access it differently
+                // The best approach is to notify the adapter and let fragments refresh on resume
+                viewPager.post(() -> {
+                    // Force adapter to refresh current item
+                    pagerAdapter.notifyItemChanged(currentItem);
+                });
             } catch (Exception e) {
                 e.printStackTrace();
             }

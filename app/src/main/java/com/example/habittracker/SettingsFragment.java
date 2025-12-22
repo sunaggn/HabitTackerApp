@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 
 import android.content.SharedPreferences;
 
+import java.io.File;
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -51,8 +52,9 @@ public class SettingsFragment extends Fragment {
     }
 
     private void loadSettings() {
-        String currentMode = preferences.getString("app_mode", "Light");
+        String currentMode = preferences.getString("app_mode", "Purple");
         textMode.setText(currentMode);
+        updateBackground(currentMode);
     }
 
     private void setupClickListeners(View view) {
@@ -62,8 +64,8 @@ public class SettingsFragment extends Fragment {
     }
 
     private void showModePicker() {
-        String[] modes = {"Light", "Dark"};
-        String currentMode = preferences.getString("app_mode", "Light");
+        String[] modes = {"Purple", "Green"};
+        String currentMode = preferences.getString("app_mode", "Purple");
         int selectedIndex = 0;
         for (int i = 0; i < modes.length; i++) {
             if (modes[i].equals(currentMode)) {
@@ -73,28 +75,201 @@ public class SettingsFragment extends Fragment {
         }
         
         new AlertDialog.Builder(requireContext())
-                .setTitle("Select Mode")
+                .setTitle("Select Theme")
                 .setSingleChoiceItems(modes, selectedIndex, (dialog, which) -> {
                     String selectedMode = modes[which];
                     preferences.edit().putString("app_mode", selectedMode).apply();
                     textMode.setText(selectedMode);
+                    updateBackground(selectedMode);
                     dialog.dismiss();
-                    // Note: Actual theme change would require app restart or theme recreation
-                    Toast.makeText(requireContext(), "Mode changed to " + selectedMode + ". Restart app to apply.", Toast.LENGTH_LONG).show();
+                    
+                    // Update all fragments in MainActivity
+                    if (getActivity() instanceof MainActivity) {
+                        MainActivity activity = (MainActivity) getActivity();
+                        activity.updateTheme(selectedMode);
+                    }
+                    
+                    Toast.makeText(requireContext(), "Theme changed to " + selectedMode, Toast.LENGTH_SHORT).show();
                 })
                 .show();
     }
 
+    private void updateBackground(String mode) {
+        View rootView = getView();
+        if (rootView != null) {
+            int backgroundRes;
+            if ("Green".equals(mode)) {
+                backgroundRes = R.drawable.gradient_background_green;
+            } else {
+                backgroundRes = R.drawable.gradient_background_vibrant;
+            }
+            rootView.setBackgroundResource(backgroundRes);
+        }
+    }
+
     private void showClearCacheDialog() {
         new AlertDialog.Builder(requireContext())
-                .setTitle("Clear Cache")
-                .setMessage("Are you sure you want to clear the cache? This will free up storage space.")
-                .setPositiveButton("Clear", (dialog, which) -> {
-                    // Clear cache logic here
-                    Toast.makeText(requireContext(), "Cache cleared", Toast.LENGTH_SHORT).show();
+                .setTitle("Clear All Data")
+                .setMessage("Are you sure you want to delete all data? This will permanently delete:\n\n" +
+                        "• User profile\n" +
+                        "• All habits and progress\n" +
+                        "• Mood entries\n" +
+                        "• Photos\n" +
+                        "• Todos\n" +
+                        "• Events\n" +
+                        "• Journals\n" +
+                        "• Alarms\n\n" +
+                        "This action cannot be undone!")
+                .setPositiveButton("Delete All", (dialog, which) -> {
+                    clearAllData();
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    private void clearAllData() {
+        try {
+            android.database.sqlite.SQLiteDatabase db = database.getWritableDatabase();
+            long deletedSize = 0;
+            int deletedFiles = 0;
+
+            // Delete all data from database tables
+            db.delete("user_profile", null, null);
+            db.delete("habits", null, null);
+            db.delete("habit_entries", null, null);
+            db.delete("mood_entries", null, null);
+            db.delete("journal_entries", null, null);
+            db.delete("todo_items", null, null);
+            db.delete("events", null, null);
+            db.delete("alarms", null, null);
+            db.delete("photos", null, null);
+            // Delete only custom categories, keep default ones
+            db.delete("categories", "is_custom = ?", new String[]{"1"});
+
+            // Delete all images directory
+            File imagesDir = new File(requireContext().getFilesDir(), "images");
+            if (imagesDir.exists() && imagesDir.isDirectory()) {
+                File[] imageFiles = imagesDir.listFiles();
+                if (imageFiles != null) {
+                    for (File imageFile : imageFiles) {
+                        long fileSize = imageFile.length();
+                        if (imageFile.delete()) {
+                            deletedSize += fileSize;
+                            deletedFiles++;
+                        }
+                    }
+                }
+                // Try to delete the directory itself
+                imagesDir.delete();
+            }
+
+            // Clear app cache directory
+            File cacheDir = requireContext().getCacheDir();
+            if (cacheDir != null && cacheDir.exists()) {
+                deletedSize += deleteDirectory(cacheDir);
+                deletedFiles += countFiles(cacheDir);
+            }
+
+            // Clear external cache directory if available
+            File externalCacheDir = requireContext().getExternalCacheDir();
+            if (externalCacheDir != null && externalCacheDir.exists()) {
+                deletedSize += deleteDirectory(externalCacheDir);
+                deletedFiles += countFiles(externalCacheDir);
+            }
+
+            // Clear SharedPreferences (except app_mode if you want to keep it)
+            // preferences.edit().clear().apply(); // Uncomment if you want to clear all preferences
+
+            // Format deleted size
+            String sizeText;
+            if (deletedSize < 1024) {
+                sizeText = deletedSize + " B";
+            } else if (deletedSize < 1024 * 1024) {
+                sizeText = String.format(Locale.ENGLISH, "%.2f KB", deletedSize / 1024.0);
+            } else {
+                sizeText = String.format(Locale.ENGLISH, "%.2f MB", deletedSize / (1024.0 * 1024.0));
+            }
+
+            Toast.makeText(requireContext(), 
+                    "All data deleted successfully. " + deletedFiles + " files (" + sizeText + ") removed.", 
+                    Toast.LENGTH_LONG).show();
+
+            // Refresh MainActivity if available to update UI and navigate to daily view
+            if (getActivity() instanceof MainActivity) {
+                MainActivity activity = (MainActivity) getActivity();
+                
+                // Show ViewPager (daily view) - this will make the daily view visible
+                activity.showViewPager();
+                
+                // Refresh user profile display
+                activity.loadUserProfile();
+                
+                // Use post to ensure UI is updated after showing ViewPager
+                androidx.viewpager2.widget.ViewPager2 viewPager = activity.getViewPager();
+                if (viewPager != null) {
+                    viewPager.post(() -> {
+                        // Force refresh all fragments in ViewPager
+                        androidx.viewpager2.adapter.FragmentStateAdapter adapter = 
+                            (androidx.viewpager2.adapter.FragmentStateAdapter) viewPager.getAdapter();
+                        if (adapter != null) {
+                            adapter.notifyDataSetChanged();
+                            
+                            // Also refresh adjacent fragments by notifying item changes
+                            int currentItem = viewPager.getCurrentItem();
+                            for (int i = Math.max(0, currentItem - 1); 
+                                 i <= Math.min(adapter.getItemCount() - 1, currentItem + 1); 
+                                 i++) {
+                                adapter.notifyItemChanged(i);
+                            }
+                        }
+                        
+                        // Refresh current fragment - this will call onResume which calls onRefresh
+                        activity.refreshTodayFragment();
+                    });
+                } else {
+                    // If ViewPager is null, just refresh the fragment
+                    activity.refreshTodayFragment();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(requireContext(), "Error deleting data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private long deleteDirectory(File directory) {
+        long deletedSize = 0;
+        if (directory != null && directory.exists()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        deletedSize += deleteDirectory(file);
+                    } else {
+                        deletedSize += file.length();
+                        file.delete();
+                    }
+                }
+            }
+        }
+        return deletedSize;
+    }
+
+    private int countFiles(File directory) {
+        int count = 0;
+        if (directory != null && directory.exists()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        count += countFiles(file);
+                    } else {
+                        count++;
+                    }
+                }
+            }
+        }
+        return count;
     }
 
     private void showRestartHabitsDialog() {

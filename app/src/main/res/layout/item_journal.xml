@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:text="Journal entry..."
             android:textSize="16sp"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/text_on_card"
             android:lineSpacingExtra="4dp"
             android:maxLines="4"
             android:ellipsize="end"

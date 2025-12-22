@@ -268,6 +268,14 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return completed;
     }
 
+    public int deleteHabit(long habitId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        // First delete all habit entries for this habit
+        db.delete(TABLE_HABIT_ENTRIES, "habit_id = ?", new String[]{String.valueOf(habitId)});
+        // Then delete the habit itself
+        return db.delete(TABLE_HABITS, "id = ?", new String[]{String.valueOf(habitId)});
+    }
+
     // Mood methods
     public long insertMoodEntry(String date, String moodType, String feelingTags, String notes) {
         SQLiteDatabase db = this.getWritableDatabase();

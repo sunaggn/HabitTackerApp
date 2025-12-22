@@ -51,6 +51,8 @@ public class UserProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        applyThemeBackground(view);
+
         database = new HabitTrackerDatabase(requireContext());
         editName = view.findViewById(R.id.edit_name);
         editSurname = view.findViewById(R.id.edit_surname);
@@ -197,5 +199,21 @@ public class UserProfileFragment extends Fragment {
                 Toast.makeText(requireContext(), "Error saving image", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    private void applyThemeBackground(View view) {
+        android.content.SharedPreferences preferences = requireContext().getSharedPreferences("app_settings", android.content.Context.MODE_PRIVATE);
+        String theme = preferences.getString("app_mode", "Purple");
+        int backgroundRes;
+        if ("Green".equals(theme)) {
+            backgroundRes = R.drawable.gradient_background_green;
+        } else {
+            backgroundRes = R.drawable.gradient_background_vibrant;
+        }
+        View rootView = view.getRootView();
+        if (rootView != null) {
+            rootView.setBackgroundResource(backgroundRes);
+        }
+        view.setBackgroundResource(backgroundRes);
     }
 }

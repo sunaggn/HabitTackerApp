@@ -68,6 +68,8 @@ public class WeeklyViewFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
+        applyThemeBackground(view);
+        
         database = new HabitTrackerDatabase(requireContext());
         weeklyRecyclerView = view.findViewById(R.id.weekly_recycler_view);
         weekTitle = view.findViewById(R.id.week_title);
@@ -331,5 +333,21 @@ public class WeeklyViewFragment extends Fragment {
                 eventTime = itemView.findViewById(R.id.event_time);
             }
         }
+    }
+
+    private void applyThemeBackground(View view) {
+        android.content.SharedPreferences preferences = requireContext().getSharedPreferences("app_settings", android.content.Context.MODE_PRIVATE);
+        String theme = preferences.getString("app_mode", "Purple");
+        int backgroundRes;
+        if ("Green".equals(theme)) {
+            backgroundRes = R.drawable.gradient_background_green;
+        } else {
+            backgroundRes = R.drawable.gradient_background_vibrant;
+        }
+        View rootView = view.getRootView();
+        if (rootView != null) {
+            rootView.setBackgroundResource(backgroundRes);
+        }
+        view.setBackgroundResource(backgroundRes);
     }
 }

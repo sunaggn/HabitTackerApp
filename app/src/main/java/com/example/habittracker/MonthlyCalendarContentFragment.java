@@ -93,11 +93,29 @@ public class MonthlyCalendarContentFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
+        applyThemeBackground(view);
+        
         database = new HabitTrackerDatabase(requireContext());
         monthlyRecyclerView = view.findViewById(R.id.monthly_recycler_view);
         monthTitle = view.findViewById(R.id.month_title);
 
         setupMonthlyView();
+    }
+
+    private void applyThemeBackground(View view) {
+        android.content.SharedPreferences preferences = requireContext().getSharedPreferences("app_settings", android.content.Context.MODE_PRIVATE);
+        String theme = preferences.getString("app_mode", "Purple");
+        int backgroundRes;
+        if ("Green".equals(theme)) {
+            backgroundRes = R.drawable.gradient_background_green;
+        } else {
+            backgroundRes = R.drawable.gradient_background_vibrant;
+        }
+        View rootView = view.getRootView();
+        if (rootView != null) {
+            rootView.setBackgroundResource(backgroundRes);
+        }
+        view.setBackgroundResource(backgroundRes);
     }
 
     private void setupMonthlyView() {

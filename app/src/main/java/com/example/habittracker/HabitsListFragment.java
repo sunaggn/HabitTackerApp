@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,6 +31,8 @@ public class HabitsListFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        
+        applyThemeBackground(view);
         
         database = new HabitTrackerDatabase(requireContext());
         habitsRecyclerView = view.findViewById(R.id.habits_recycler_view);
@@ -105,6 +108,21 @@ public class HabitsListFragment extends Fragment {
             holder.habitName.setText(habit.name);
             holder.habitCategory.setText(habit.category);
             holder.habitCheckbox.setVisibility(View.GONE);
+
+            holder.itemView.setOnLongClickListener(v -> {
+                AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+                builder.setTitle("Delete Habit")
+                        .setMessage("Are you sure you want to delete \"" + habit.name + "\"?")
+                        .setPositiveButton("Delete", (dialog, which) -> {
+                            database.deleteHabit(habit.id);
+                            habits.remove(position);
+                            notifyItemRemoved(position);
+                            notifyItemRangeChanged(position, habits.size());
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+                return true;
+            });
         }
 
         @Override
@@ -124,6 +142,22 @@ public class HabitsListFragment extends Fragment {
                 habitCategory = itemView.findViewById(R.id.habit_category);
             }
         }
+    }
+
+    private void applyThemeBackground(View view) {
+        android.content.SharedPreferences preferences = requireContext().getSharedPreferences("app_settings", android.content.Context.MODE_PRIVATE);
+        String theme = preferences.getString("app_mode", "Purple");
+        int backgroundRes;
+        if ("Green".equals(theme)) {
+            backgroundRes = R.drawable.gradient_background_green;
+        } else {
+            backgroundRes = R.drawable.gradient_background_vibrant;
+        }
+        View rootView = view.getRootView();
+        if (rootView != null) {
+            rootView.setBackgroundResource(backgroundRes);
+        }
+        view.setBackgroundResource(backgroundRes);
     }
 }
 
