@@ -32,7 +32,6 @@ public class AddHabitFragment extends Fragment {
     private Button btnRepeatMonthly;
     private CheckBox checkAllDays;
     private Button btnDaySun, btnDayMon, btnDayTue, btnDayWed, btnDayThu, btnDayFri, btnDaySat;
-    private Button btnTimeMorning, btnTimeAfternoon, btnTimeEvening;
     private Switch switchEndDate;
     private Switch switchReminder;
     private TextView textEndDate;
@@ -43,7 +42,6 @@ public class AddHabitFragment extends Fragment {
     private String selectedColor = "#B19CD9";
     private String repeatType = "Daily";
     private List<Boolean> selectedDays = new ArrayList<>();
-    private String timeOfDay = "";
     private String endDate = "";
     private boolean reminderEnabled = false;
 
@@ -72,9 +70,6 @@ public class AddHabitFragment extends Fragment {
         btnDayThu = view.findViewById(R.id.btn_day_thu);
         btnDayFri = view.findViewById(R.id.btn_day_fri);
         btnDaySat = view.findViewById(R.id.btn_day_sat);
-        btnTimeMorning = view.findViewById(R.id.btn_time_morning);
-        btnTimeAfternoon = view.findViewById(R.id.btn_time_afternoon);
-        btnTimeEvening = view.findViewById(R.id.btn_time_evening);
         switchEndDate = view.findViewById(R.id.switch_end_date);
         switchReminder = view.findViewById(R.id.switch_reminder);
         textEndDate = view.findViewById(R.id.text_end_date);
@@ -145,21 +140,6 @@ public class AddHabitFragment extends Fragment {
         setupDayButton(btnDayFri, 5);
         setupDayButton(btnDaySat, 6);
         
-        btnTimeMorning.setOnClickListener(v -> {
-            timeOfDay = "Morning";
-            updateTimeButtons();
-        });
-        
-        btnTimeAfternoon.setOnClickListener(v -> {
-            timeOfDay = "Afternoon";
-            updateTimeButtons();
-        });
-        
-        btnTimeEvening.setOnClickListener(v -> {
-            timeOfDay = "Evening";
-            updateTimeButtons();
-        });
-        
         switchEndDate.setOnCheckedChangeListener((buttonView, isChecked) -> {
             view.findViewById(R.id.layout_end_date).setVisibility(isChecked ? View.VISIBLE : View.GONE);
         });
@@ -179,8 +159,13 @@ public class AddHabitFragment extends Fragment {
             
             String daysOfWeek = getDaysOfWeekString();
             database.insertHabit(habitName, "Custom", selectedColor, selectedIcon, 
-                    repeatType, daysOfWeek, timeOfDay, endDate, reminderEnabled);
+                    repeatType, daysOfWeek, "", endDate, reminderEnabled);
             Toast.makeText(requireContext(), "Habit added", Toast.LENGTH_SHORT).show();
+            
+            // Refresh TodayFragment if MainActivity is available
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).refreshTodayFragment();
+            }
             
             if (getActivity() != null) {
                 getActivity().onBackPressed();
@@ -204,7 +189,7 @@ public class AddHabitFragment extends Fragment {
                 buttons[i].setTextColor(android.graphics.Color.WHITE);
             } else {
                 buttons[i].setBackgroundResource(R.drawable.rounded_button_outline);
-                buttons[i].setTextColor(requireContext().getColor(R.color.primary));
+                buttons[i].setTextColor(requireContext().getColor(R.color.text_primary));
             }
         }
     }
@@ -223,23 +208,6 @@ public class AddHabitFragment extends Fragment {
         btnRepeatMonthly.setBackgroundResource(repeatType.equals("Monthly") ? 
                 R.drawable.rounded_button : R.drawable.rounded_button_outline);
         btnRepeatMonthly.setTextColor(requireContext().getColor(repeatType.equals("Monthly") ? 
-                android.R.color.white : R.color.primary));
-    }
-
-    private void updateTimeButtons() {
-        btnTimeMorning.setBackgroundResource(timeOfDay.equals("Morning") ? 
-                R.drawable.rounded_button : R.drawable.rounded_button_outline);
-        btnTimeMorning.setTextColor(requireContext().getColor(timeOfDay.equals("Morning") ? 
-                android.R.color.white : R.color.primary));
-        
-        btnTimeAfternoon.setBackgroundResource(timeOfDay.equals("Afternoon") ? 
-                R.drawable.rounded_button : R.drawable.rounded_button_outline);
-        btnTimeAfternoon.setTextColor(requireContext().getColor(timeOfDay.equals("Afternoon") ? 
-                android.R.color.white : R.color.primary));
-        
-        btnTimeEvening.setBackgroundResource(timeOfDay.equals("Evening") ? 
-                R.drawable.rounded_button : R.drawable.rounded_button_outline);
-        btnTimeEvening.setTextColor(requireContext().getColor(timeOfDay.equals("Evening") ? 
                 android.R.color.white : R.color.primary));
     }
 

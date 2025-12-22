@@ -25,7 +25,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -57,9 +56,10 @@ public class TodayFragment extends Fragment implements RefreshListener {
     private RecyclerView todosRecyclerView;
     private RecyclerView eventsRecyclerView;
     private RecyclerView journalsRecyclerView;
+    private RecyclerView alarmsRecyclerView;
     private HabitTrackerDatabase database;
     private Button btnMood;
-    private FloatingActionButton fabAdd;
+    private Button btnAlarm;
     private ImageButton btnCalendar;
     private ImageButton menuButton;
     private ImageButton btnBackWeekly;
@@ -118,8 +118,9 @@ public class TodayFragment extends Fragment implements RefreshListener {
         todosRecyclerView = view.findViewById(R.id.todos_recycler_view);
         eventsRecyclerView = view.findViewById(R.id.events_recycler_view);
         journalsRecyclerView = view.findViewById(R.id.journals_recycler_view);
+        alarmsRecyclerView = view.findViewById(R.id.alarms_recycler_view);
         btnMood = view.findViewById(R.id.btn_mood);
-        fabAdd = view.findViewById(R.id.fab_add);
+        btnAlarm = view.findViewById(R.id.btn_alarm);
         btnCalendar = view.findViewById(R.id.btn_calendar);
         menuButton = view.findViewById(R.id.menu_button);
         btnBackWeekly = view.findViewById(R.id.btn_back_weekly);
@@ -139,8 +140,10 @@ public class TodayFragment extends Fragment implements RefreshListener {
         setupTodosList();
         setupEventsList();
         setupJournalsList();
+        setupAlarmsList();
         setupPhotoCard();
         setupButtons();
+        setupAlarmButton();
 
         loadMoodForDate();
         loadPhoto();
@@ -152,6 +155,7 @@ public class TodayFragment extends Fragment implements RefreshListener {
         loadTodos();
         loadEvents();
         loadJournals();
+        loadAlarms();
         loadPhoto();
     }
 
@@ -294,6 +298,39 @@ public class TodayFragment extends Fragment implements RefreshListener {
     private void setupJournalsList() {
         journalsRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         loadJournals();
+    }
+
+    private void setupAlarmsList() {
+        alarmsRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        loadAlarms();
+    }
+
+    private void setupAlarmButton() {
+        btnAlarm.setOnClickListener(v -> {
+            AddAlarmDialog dialog = new AddAlarmDialog();
+            dialog.setDate(currentDate);
+            dialog.setRefreshListener(this);
+            dialog.show(getParentFragmentManager(), "add_alarm");
+        });
+    }
+
+    private void cancelAlarm(long alarmId) {
+        try {
+            android.app.AlarmManager alarmManager = (android.app.AlarmManager) requireContext().getSystemService(android.content.Context.ALARM_SERVICE);
+            if (alarmManager != null) {
+                android.content.Intent intent = new android.content.Intent(requireContext(), AlarmReceiver.class);
+                android.app.PendingIntent pendingIntent = android.app.PendingIntent.getBroadcast(
+                        requireContext(),
+                        (int) alarmId,
+                        intent,
+                        android.app.PendingIntent.FLAG_IMMUTABLE | android.app.PendingIntent.FLAG_UPDATE_CURRENT
+                );
+                alarmManager.cancel(pendingIntent);
+                pendingIntent.cancel();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void setupPhotoCard() {
@@ -489,6 +526,27 @@ public class TodayFragment extends Fragment implements RefreshListener {
         }
     }
 
+    private void loadAlarms() {
+        android.database.Cursor cursor = database.getAlarmsForDate(currentDate);
+        List<AlarmItem> alarms = new ArrayList<>();
+
+        while (cursor.moveToNext()) {
+            long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
+            String time = cursor.getString(cursor.getColumnIndexOrThrow("time"));
+            String title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
+            alarms.add(new AlarmItem(id, time, title));
+        }
+        cursor.close();
+
+        if (alarms.isEmpty()) {
+            alarmsRecyclerView.setVisibility(View.GONE);
+        } else {
+            alarmsRecyclerView.setVisibility(View.VISIBLE);
+            AlarmAdapter adapter = new AlarmAdapter(alarms);
+            alarmsRecyclerView.setAdapter(adapter);
+        }
+    }
+
     private void loadPhoto() {
         android.database.Cursor cursor = database.getPhotosForDate(currentDate);
         if (cursor.moveToFirst()) {
@@ -672,6 +730,18 @@ public class TodayFragment extends Fragment implements RefreshListener {
         }
     }
 
+    public class AlarmItem {
+        public long id;
+        public String time;
+        public String title;
+
+        public AlarmItem(long id, String time, String title) {
+            this.id = id;
+            this.time = time;
+            this.title = title;
+        }
+    }
+
     private class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHolder> {
         private List<HabitItem> habits;
 
@@ -697,16 +767,9 @@ public class TodayFragment extends Fragment implements RefreshListener {
             holder.habitCheckbox.setChecked(habit.completed);
 
             holder.habitCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                if (isChecked) {
-                    database.insertHabitEntry(habit.id, currentDate, true);
-
-                    int pos = holder.getAdapterPosition();
-                    if (pos != RecyclerView.NO_POSITION) {
-                        habits.remove(pos);
-                        notifyItemRemoved(pos);
-                        notifyItemRangeChanged(pos, habits.size());
-                    }
-                }
+                database.insertHabitEntry(habit.id, currentDate, isChecked);
+                // Update the habit item's completed status
+                habit.completed = isChecked;
             });
         }
 
@@ -916,6 +979,58 @@ public class TodayFragment extends Fragment implements RefreshListener {
             JournalViewHolder(@NonNull View itemView) {
                 super(itemView);
                 journalContent = itemView.findViewById(R.id.journal_content);
+            }
+        }
+    }
+
+    private class AlarmAdapter extends RecyclerView.Adapter<AlarmAdapter.AlarmViewHolder> {
+        private List<AlarmItem> alarms;
+
+        AlarmAdapter(List<AlarmItem> alarms) {
+            this.alarms = alarms;
+        }
+
+        @NonNull
+        @Override
+        public AlarmViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_alarm, parent, false);
+            return new AlarmViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull AlarmViewHolder holder, int position) {
+            AlarmItem alarm = alarms.get(position);
+            holder.alarmTitle.setText(alarm.title);
+            holder.alarmTime.setText(alarm.time != null ? alarm.time : "");
+
+            holder.itemView.setOnLongClickListener(v -> {
+                AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+                builder.setItems(new CharSequence[]{"Delete"}, (dialog, which) -> {
+                    if (which == 0) {
+                        cancelAlarm(alarm.id);
+                        database.deleteAlarm(alarm.id);
+                        loadAlarms();
+                    }
+                });
+                builder.show();
+                return true;
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return alarms.size();
+        }
+
+        class AlarmViewHolder extends RecyclerView.ViewHolder {
+            TextView alarmTitle;
+            TextView alarmTime;
+
+            AlarmViewHolder(@NonNull View itemView) {
+                super(itemView);
+                alarmTitle = itemView.findViewById(R.id.alarm_title);
+                alarmTime = itemView.findViewById(R.id.alarm_time);
             }
         }
     }

@@ -148,6 +148,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .commit();
     }
 
+    public void showMonthlyView() {
+        showMonthlyView(null);
+    }
+
+    public void showMonthlyView(String weekStartDate) {
+        viewPager.setVisibility(android.view.View.GONE);
+        findViewById(R.id.fragment_container).setVisibility(android.view.View.VISIBLE);
+        
+        MonthlyCalendarFragment fragment = MonthlyCalendarFragment.newInstance(weekStartDate);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .commit();
+    }
+
     public void openDrawer() {
         drawerLayout.openDrawer(navigationView);
     }
@@ -176,6 +190,39 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             viewPager.setCurrentItem(1000 + daysDiff, true);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public void refreshTodayFragment() {
+        // Refresh the current TodayFragment in ViewPager
+        if (viewPager != null && viewPager.getVisibility() == View.VISIBLE && pagerAdapter != null) {
+            try {
+                // Try to get fragment from ViewPager2's FragmentStateAdapter
+                int currentItem = viewPager.getCurrentItem();
+                // Use reflection to access the fragment from FragmentStateAdapter
+                // Or simply notify adapter to refresh
+                // For now, let's find fragment from child fragment manager
+                androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
+                for (Fragment fragment : fm.getFragments()) {
+                    if (fragment instanceof TodayFragment && fragment.isAdded()) {
+                        ((TodayFragment) fragment).onRefresh();
+                        return;
+                    }
+                }
+                // If not found in main fragment manager, try child fragment managers
+                for (Fragment fragment : fm.getFragments()) {
+                    if (fragment != null && fragment.getChildFragmentManager() != null) {
+                        for (Fragment childFragment : fragment.getChildFragmentManager().getFragments()) {
+                            if (childFragment instanceof TodayFragment && childFragment.isAdded()) {
+                                ((TodayFragment) childFragment).onRefresh();
+                                return;
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

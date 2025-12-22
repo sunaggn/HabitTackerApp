@@ -15,26 +15,51 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:paddingTop="24dp"
-            android:paddingBottom="24dp">
+            android:padding="20dp"
+            android:paddingTop="32dp"
+            android:paddingBottom="32dp">
+
+            <ImageButton
+                android:id="@+id/menu_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/menu"
+                android:src="@drawable/ic_menu_hamburger"
+                app:tint="@color/text_primary"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageButton
+                android:id="@+id/btn_back_monthly"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Back to monthly view"
+                android:src="@android:drawable/ic_menu_revert"
+                app:tint="@color/text_primary"
+                app:layout_constraintStart_toEndOf="@id/menu_button"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/week_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="This Week"
-                android:textSize="24sp"
-                android:textStyle="bold"
+                android:textSize="28sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="normal"
                 android:textColor="@color/text_primary"
+                android:layout_marginTop="32dp"
+                android:letterSpacing="0.01"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toBottomOf="@id/menu_button" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/weekly_recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="16dp"
                 android:nestedScrollingEnabled="false"
                 app:layout_constraintTop_toBottomOf="@id/week_title" />
 

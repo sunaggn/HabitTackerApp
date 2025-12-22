@@ -15,33 +15,35 @@
         android:padding="20dp"
         android:minHeight="64dp">
 
-        <CheckBox
-            android:id="@+id/todo_checkbox"
-            android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/alarm_title"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:minWidth="24dp"
-            android:minHeight="24dp"
-            app:buttonTint="@color/primary"
+            android:text="Alarm Title"
+            android:textSize="17sp"
+            android:fontFamily="sans-serif-medium"
+            android:textStyle="normal"
+            android:textColor="@color/text_primary"
+            android:letterSpacing="0.01"
+            app:layout_constraintEnd_toStartOf="@id/alarm_time"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
         <TextView
-            android:id="@+id/todo_title"
-            android:layout_width="0dp"
+            android:id="@+id/alarm_time"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="10:00"
+            android:textSize="15sp"
+            android:textColor="@color/text_secondary"
             android:layout_marginStart="16dp"
-            android:text="To-Do Title"
-            android:textSize="17sp"
-            android:fontFamily="sans-serif"
-            android:textColor="@color/text_primary"
-            android:gravity="center_vertical"
             android:letterSpacing="0.01"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/todo_checkbox"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </com.google.android.material.card.MaterialCardView>
+

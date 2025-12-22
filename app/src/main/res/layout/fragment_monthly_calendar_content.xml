@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fitsSystemWindows="true">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:fitsSystemWindows="true">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:paddingTop="32dp"
+            android:paddingBottom="32dp">
+
+
+            <TextView
+                android:id="@+id/month_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="December 2024"
+                android:textSize="28sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="normal"
+                android:textColor="@color/text_primary"
+                android:layout_marginTop="0dp"
+                android:letterSpacing="0.01"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- Week day headers -->
+            <LinearLayout
+                android:id="@+id/week_day_headers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="24dp"
+                android:weightSum="7"
+                app:layout_constraintTop_toBottomOf="@id/month_title">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Mon"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:gravity="center"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.01" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Tue"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:gravity="center"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.01" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Wed"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:gravity="center"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.01" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Thu"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:gravity="center"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.01" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Fri"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:gravity="center"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.01" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Sat"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:gravity="center"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.01" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Sun"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:gravity="center"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.01" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/monthly_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false"
+                app:layout_constraintTop_toBottomOf="@id/week_day_headers" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+

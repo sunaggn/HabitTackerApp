@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -24,6 +25,9 @@ public class WeeklyViewFragment extends Fragment {
     private HabitTrackerDatabase database;
     private RecyclerView weeklyRecyclerView;
     private TextView weekTitle;
+    private ImageButton menuButton;
+    private ImageButton btnBackMonthly;
+    private String currentWeekStartDate;
     
     // Item classes
     static class TodoItem {
@@ -67,8 +71,25 @@ public class WeeklyViewFragment extends Fragment {
         database = new HabitTrackerDatabase(requireContext());
         weeklyRecyclerView = view.findViewById(R.id.weekly_recycler_view);
         weekTitle = view.findViewById(R.id.week_title);
+        menuButton = view.findViewById(R.id.menu_button);
+        btnBackMonthly = view.findViewById(R.id.btn_back_monthly);
         
+        setupButtons();
         setupWeeklyView();
+    }
+
+    private void setupButtons() {
+        menuButton.setOnClickListener(v -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).openDrawer();
+            }
+        });
+
+        btnBackMonthly.setOnClickListener(v -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).showMonthlyView(currentWeekStartDate);
+            }
+        });
     }
 
     private void setupWeeklyView() {
@@ -84,7 +105,7 @@ public class WeeklyViewFragment extends Fragment {
         cal.set(Calendar.MILLISECOND, 0);
         
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-        String currentWeekStartDate = sdf.format(cal.getTime());
+        currentWeekStartDate = sdf.format(cal.getTime());
         
         // Update week title
         SimpleDateFormat titleFormat = new SimpleDateFormat("d MMM", Locale.ENGLISH);
