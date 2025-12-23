@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.Locale;
 
 public class AddEventDialog extends DialogFragment {
+    private String date;
     private HabitTrackerDatabase database;
     private EditText editTitle;
     private EditText editDescription;
@@ -33,6 +34,7 @@ public class AddEventDialog extends DialogFragment {
     private TodayFragment.EventItem eventItem; // For editing
 
     public void setDate(String date) {
+        this.date = date;
         this.selectedDate = date;
     }
 
@@ -123,28 +125,34 @@ public class AddEventDialog extends DialogFragment {
             timePickerDialog.show();
         });
 
-        builder.setView(view)
-                .setPositiveButton(R.string.save, (dialog, which) -> {
-                    String title = editTitle.getText().toString().trim();
-                    if (!TextUtils.isEmpty(title)) {
-                        String description = editDescription.getText().toString().trim();
-                        boolean alarmSet = checkAlarm.isChecked();
+        android.widget.TextView btnSave = view.findViewById(R.id.btn_save);
+        android.widget.TextView btnCancel = view.findViewById(R.id.btn_cancel);
 
-                        if (eventItem != null) {
-                            database.updateEvent(eventItem.id, title, description, selectedTime);
-                            Toast.makeText(requireContext(), R.string.event_updated, Toast.LENGTH_SHORT).show();
-                        } else {
-                            database.insertEvent(selectedDate, title, description, selectedTime, alarmSet);
-                            Toast.makeText(requireContext(), R.string.event_added, Toast.LENGTH_SHORT).show();
-                        }
+        btnSave.setOnClickListener(v -> {
+            String title = editTitle.getText().toString().trim();
+            if (!TextUtils.isEmpty(title)) {
+                String description = editDescription.getText().toString().trim();
+                boolean alarmSet = checkAlarm.isChecked();
 
-                        if (refreshListener != null) {
-                            refreshListener.onRefresh();
-                        }
-                    }
-                })
-                .setNegativeButton(R.string.cancel, null);
+                if (eventItem != null) {
+                    database.updateEvent(eventItem.id, title, description, selectedTime);
+                    Toast.makeText(requireContext(), "Event updated", Toast.LENGTH_SHORT).show();
+                } else {
+                    database.insertEvent(selectedDate, title, description, selectedTime, alarmSet);
+                    Toast.makeText(requireContext(), "Event added", Toast.LENGTH_SHORT).show();
+                }
 
-        return builder.create();
+                if (refreshListener != null) {
+                    refreshListener.onRefresh();
+                }
+                dismiss();
+            }
+        });
+
+        btnCancel.setOnClickListener(v -> dismiss());
+
+        android.app.Dialog dialog = builder.setView(view).create();
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        return dialog;
     }
 }
