@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?android:attr/colorBackground"
@@ -151,143 +152,224 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
                     android:text="Repeat"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="16dp" />
+                    android:textStyle="bold" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="16dp">
+                    android:layout_marginBottom="16dp"
+                    android:orientation="horizontal">
 
                     <Button
                         android:id="@+id/btn_repeat_daily"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
                         android:layout_weight="1"
-                        android:text="Daily"
                         android:background="@drawable/rounded_button"
-                        android:textColor="?attr/colorOnPrimary"
-                        android:layout_marginEnd="8dp" />
+                        android:text="Daily"
+                        android:textColor="?attr/colorOnPrimary" />
 
                     <Button
                         android:id="@+id/btn_repeat_weekly"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
                         android:layout_weight="1"
-                        android:text="Weekly"
                         android:background="@drawable/rounded_button_outline"
-                        android:textColor="?attr/colorPrimary"
-                        android:layout_marginEnd="8dp" />
+                        android:text="Weekly"
+                        android:textColor="?attr/colorPrimary" />
 
                     <Button
                         android:id="@+id/btn_repeat_monthly"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Monthly"
                         android:background="@drawable/rounded_button_outline"
+                        android:text="Monthly"
                         android:textColor="?attr/colorPrimary" />
-
                 </LinearLayout>
 
+                <!-- GÜN BAŞLIĞI (SADECE 1 KEZ) -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
                     android:text="On these days"
                     android:textColor="?attr/colorOnSurface"
-                    android:textSize="16sp"
-                    android:layout_marginBottom="8dp" />
+                    android:textSize="16sp" />
 
+                <!-- ALL DAY -->
                 <CheckBox
                     android:id="@+id/check_all_days"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="All day"
-                    android:textColor="?attr/colorOnSurface"
-                    android:layout_marginBottom="12dp" />
+                    android:layout_marginBottom="12dp"
+                    android:text="Everyday"
+                    android:textColor="?attr/colorOnSurface" />
 
-                <LinearLayout
-                    android:id="@+id/layout_weekdays"
+                <!-- GÜN BUTONLARI -->
+                <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:scrollbars="none">
 
-                    <Button
-                        android:id="@+id/btn_day_sun"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
-                        android:text="S"
-                        android:background="@drawable/rounded_button"
-                        android:textColor="?attr/colorOnPrimary"
-                        android:layout_marginEnd="4dp" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <!-- MON -->
+                        <FrameLayout
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="8dp">
 
-                    <Button
-                        android:id="@+id/btn_day_mon"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
-                        android:text="M"
-                        android:background="@drawable/rounded_button"
-                        android:textColor="?attr/colorOnPrimary"
-                        android:layout_marginEnd="4dp" />
+                            <Button
+                                android:id="@+id/btn_day_mon"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/rounded_button" />
 
-                    <Button
-                        android:id="@+id/btn_day_tue"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
-                        android:text="T"
-                        android:background="@drawable/rounded_button"
-                        android:textColor="?attr/colorOnPrimary"
-                        android:layout_marginEnd="4dp" />
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:text="MON"
+                                android:textColor="@android:color/black"
+                                android:textSize="12sp"
+                                android:gravity="center" />
+                        </FrameLayout>
 
-                    <Button
-                        android:id="@+id/btn_day_wed"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
-                        android:text="W"
-                        android:background="@drawable/rounded_button"
-                        android:textColor="?attr/colorOnPrimary"
-                        android:layout_marginEnd="4dp" />
+                        <!-- TUE -->
+                        <FrameLayout
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="8dp">
 
-                    <Button
-                        android:id="@+id/btn_day_thu"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
-                        android:text="T"
-                        android:background="@drawable/rounded_button"
-                        android:textColor="?attr/colorOnPrimary"
-                        android:layout_marginEnd="4dp" />
+                            <Button
+                                android:id="@+id/btn_day_tue"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/rounded_button" />
 
-                    <Button
-                        android:id="@+id/btn_day_fri"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
-                        android:text="F"
-                        android:background="@drawable/rounded_button"
-                        android:textColor="?attr/colorOnPrimary"
-                        android:layout_marginEnd="4dp" />
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:text="TUE"
+                                android:textColor="@android:color/black"
+                                android:textSize="12sp"
+                                android:gravity="center" />
+                        </FrameLayout>
 
-                    <Button
-                        android:id="@+id/btn_day_sat"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
-                        android:text="S"
-                        android:background="@drawable/rounded_button"
-                        android:textColor="?attr/colorOnPrimary" />
+                        <FrameLayout
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="8dp">
 
-                </LinearLayout>
+                            <Button
+                                android:id="@+id/btn_day_wed"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/rounded_button" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:text="WED"
+                                android:textColor="@android:color/black"
+                                android:textSize="12sp"
+                                android:gravity="center" />
+                        </FrameLayout>
+
+                        <FrameLayout
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="8dp">
+
+                            <Button
+                                android:id="@+id/btn_day_thu"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/rounded_button" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:text="THU"
+                                android:textColor="@android:color/black"
+                                android:textSize="12sp"
+                                android:gravity="center" />
+                        </FrameLayout>
+
+                        <FrameLayout
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="8dp">
+
+                            <Button
+                                android:id="@+id/btn_day_fri"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/rounded_button" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:text="FRI"
+                                android:textColor="@android:color/black"
+                                android:textSize="12sp"
+                                android:gravity="center" />
+                        </FrameLayout>
+
+                        <FrameLayout
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="8dp">
+
+                            <Button
+                                android:id="@+id/btn_day_sat"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/rounded_button" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:text="SAT"
+                                android:textColor="@android:color/black"
+                                android:textSize="12sp"
+                                android:gravity="center" />
+                        </FrameLayout>
+                        <!-- SUN -->
+                        <FrameLayout
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="8dp">
+
+                            <Button
+                                android:id="@+id/btn_day_sun"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/rounded_button" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:text="SUN"
+                                android:textColor="@android:color/black"
+                                android:textSize="12sp"
+                                android:gravity="center" />
+                        </FrameLayout>
+
+                    </LinearLayout>
+                </HorizontalScrollView>
+
 
             </LinearLayout>
+
 
         </com.google.android.material.card.MaterialCardView>
 

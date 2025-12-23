@@ -1,6 +1,7 @@
 package com.example.habittracker;
 
 import android.app.DatePickerDialog;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -19,11 +20,15 @@ import androidx.fragment.app.Fragment;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 public class AddHabitFragment extends Fragment {
+    private static final String ARG_HABIT_ID = "habit_id";
+
     private EditText editHabitName;
     private TextView textSelectedIcon;
     private View viewSelectedColor;
@@ -37,13 +42,30 @@ public class AddHabitFragment extends Fragment {
     private TextView textEndDate;
     private Button btnSave;
     private HabitTrackerDatabase database;
-    
+
+    private long habitId = -1;
     private String selectedIcon = "📚";
     private String selectedColor = "#B19CD9";
     private String repeatType = "Daily";
     private List<Boolean> selectedDays = new ArrayList<>();
     private String endDate = "";
     private boolean reminderEnabled = false;
+
+    public static AddHabitFragment newInstance(long habitId) {
+        AddHabitFragment fragment = new AddHabitFragment();
+        Bundle args = new Bundle();
+        args.putLong(ARG_HABIT_ID, habitId);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            habitId = getArguments().getLong(ARG_HABIT_ID, -1);
+        }
+    }
 
     @Nullable
     @Override
@@ -54,8 +76,25 @@ public class AddHabitFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        
+
         database = new HabitTrackerDatabase(requireContext());
+        initializeViews(view);
+
+        for (int i = 0; i < 7; i++) {
+            selectedDays.add(true);
+        }
+
+        if (habitId != -1) {
+            loadHabitData();
+        }
+
+        setupClickListeners(view);
+        updateColorView();
+        updateRepeatButtons();
+        updateDayButtons();
+    }
+
+    private void initializeViews(View view) {
         editHabitName = view.findViewById(R.id.edit_habit_name);
         textSelectedIcon = view.findViewById(R.id.text_selected_icon);
         viewSelectedColor = view.findViewById(R.id.view_selected_color);
@@ -74,24 +113,38 @@ public class AddHabitFragment extends Fragment {
         switchReminder = view.findViewById(R.id.switch_reminder);
         textEndDate = view.findViewById(R.id.text_end_date);
         btnSave = view.findViewById(R.id.btn_save);
-        android.widget.ImageButton btnBack = view.findViewById(R.id.btn_back);
-        
-        // Initialize selected days (all true by default)
-        for (int i = 0; i < 7; i++) {
-            selectedDays.add(true);
-        }
-        
-        btnBack.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                getActivity().onBackPressed();
+        view.findViewById(R.id.btn_back).setOnClickListener(v -> getParentFragmentManager().popBackStack());
+    }
+
+    private void loadHabitData() {
+        Cursor cursor = database.getHabitById(habitId);
+        if (cursor != null && cursor.moveToFirst()) {
+            editHabitName.setText(cursor.getString(cursor.getColumnIndexOrThrow("name")));
+            selectedIcon = cursor.getString(cursor.getColumnIndexOrThrow("icon"));
+            textSelectedIcon.setText(selectedIcon);
+            selectedColor = cursor.getString(cursor.getColumnIndexOrThrow("color"));
+            repeatType = cursor.getString(cursor.getColumnIndexOrThrow("repeat_type"));
+            endDate = cursor.getString(cursor.getColumnIndexOrThrow("end_date"));
+            reminderEnabled = cursor.getInt(cursor.getColumnIndexOrThrow("reminder_enabled")) == 1;
+
+            String daysOfWeek = cursor.getString(cursor.getColumnIndexOrThrow("days_of_week"));
+            if (daysOfWeek != null && !daysOfWeek.isEmpty()) {
+                List<String> days = Arrays.asList(daysOfWeek.split(","));
+                for(int i=0; i<selectedDays.size(); i++) {
+                    selectedDays.set(i, days.contains(String.valueOf(i)));
+                }
             }
-        });
-        
-        setupClickListeners(view);
-        updateColorView();
+            
+            switchEndDate.setChecked(!TextUtils.isEmpty(endDate));
+            textEndDate.setText(endDate);
+            switchReminder.setChecked(reminderEnabled);
+
+            cursor.close();
+        }
     }
 
     private void setupClickListeners(View view) {
+        // ... (same as before)
         view.findViewById(R.id.layout_icon).setOnClickListener(v -> {
             IconPickerDialog dialog = new IconPickerDialog();
             dialog.setIconSelectedListener(icon -> {
@@ -149,31 +202,32 @@ public class AddHabitFragment extends Fragment {
         switchReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
             reminderEnabled = isChecked;
         });
-        
+
         btnSave.setOnClickListener(v -> {
             String habitName = editHabitName.getText().toString().trim();
             if (TextUtils.isEmpty(habitName)) {
                 Toast.makeText(requireContext(), "Please enter a habit name", Toast.LENGTH_SHORT).show();
                 return;
             }
-            
+
             String daysOfWeek = getDaysOfWeekString();
-            database.insertHabit(habitName, "Custom", selectedColor, selectedIcon, 
-                    repeatType, daysOfWeek, "", endDate, reminderEnabled);
-            Toast.makeText(requireContext(), "Habit added", Toast.LENGTH_SHORT).show();
-            
-            // Show ViewPager and refresh TodayFragment if MainActivity is available
+            if (habitId == -1) {
+                database.insertHabit(habitName, "Custom", selectedColor, selectedIcon,
+                        repeatType, daysOfWeek, "", endDate, reminderEnabled);
+                Toast.makeText(requireContext(), "Habit added", Toast.LENGTH_SHORT).show();
+            } else {
+                database.updateHabit(habitId, habitName, "Custom", selectedColor, selectedIcon,
+                        repeatType, daysOfWeek, "", endDate, reminderEnabled);
+                Toast.makeText(requireContext(), "Habit updated", Toast.LENGTH_SHORT).show();
+            }
+
             if (getActivity() instanceof MainActivity) {
                 MainActivity activity = (MainActivity) getActivity();
-                // Show ViewPager first
                 activity.showViewPager();
-                // Refresh the current fragment
                 activity.refreshTodayFragment();
             }
-            
-            if (getActivity() != null) {
-                getActivity().onBackPressed();
-            }
+
+            getParentFragmentManager().popBackStack();
         });
     }
 

@@ -32,8 +32,6 @@ public class HabitsListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
-        // Theme is now handled by Material3 DayNight
-        
         database = new HabitTrackerDatabase(requireContext());
         habitsRecyclerView = view.findViewById(R.id.habits_recycler_view);
         fabAdd = view.findViewById(R.id.fab_add_habit);
@@ -109,19 +107,31 @@ public class HabitsListFragment extends Fragment {
             holder.habitCategory.setText(habit.category);
             holder.habitCheckbox.setVisibility(View.GONE);
 
-            holder.itemView.setOnLongClickListener(v -> {
+            holder.itemView.setOnClickListener(v -> {
                 AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-                builder.setTitle("Delete Habit")
-                        .setMessage("Are you sure you want to delete \"" + habit.name + "\"?")
-                        .setPositiveButton("Delete", (dialog, which) -> {
-                            database.deleteHabit(habit.id);
-                            habits.remove(position);
-                            notifyItemRemoved(position);
-                            notifyItemRangeChanged(position, habits.size());
-                        })
-                        .setNegativeButton("Cancel", null)
-                        .show();
-                return true;
+                builder.setItems(new CharSequence[]{"Edit", "Delete"}, (dialog, which) -> {
+                    switch (which) {
+                        case 0: // Edit
+                            AddHabitFragment fragment = AddHabitFragment.newInstance(habit.id);
+                            getParentFragmentManager().beginTransaction()
+                                    .replace(R.id.fragment_container, fragment)
+                                    .addToBackStack(null)
+                                    .commit();
+                            break;
+                        case 1: // Delete
+                            new AlertDialog.Builder(requireContext())
+                                    .setTitle("Delete Habit")
+                                    .setMessage("Are you sure you want to delete \"" + habit.name + "\"?")
+                                    .setPositiveButton("Delete", (deleteDialog, deleteWhich) -> {
+                                        database.deleteHabit(habit.id);
+                                        loadHabits();
+                                    })
+                                    .setNegativeButton("Cancel", null)
+                                    .show();
+                            break;
+                    }
+                });
+                builder.show();
             });
         }
 
@@ -143,7 +153,4 @@ public class HabitsListFragment extends Fragment {
             }
         }
     }
-
-    // Theme is now handled by Material3 DayNight
 }
-

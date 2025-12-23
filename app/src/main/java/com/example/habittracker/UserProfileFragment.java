@@ -1,5 +1,6 @@
 package com.example.habittracker;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.net.Uri;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.textfield.TextInputEditText;
@@ -24,10 +26,14 @@ import com.google.android.material.textfield.TextInputEditText;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Locale;
 
 public class UserProfileFragment extends Fragment {
     private static final int REQUEST_IMAGE_PICK = 1;
+    private static final int REQUEST_IMAGE_CAPTURE = 2;
+
     private TextInputEditText editName;
     private TextInputEditText editSurname;
     private TextInputEditText editEmail;
@@ -40,6 +46,7 @@ public class UserProfileFragment extends Fragment {
     private String profileImagePath = "";
     private String selectedGender = "";
     private String selectedBirthdate = "";
+    private Uri cameraImageUri;
 
     @Nullable
     @Override
@@ -50,8 +57,6 @@ public class UserProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // Theme is now handled by Material3 DayNight
 
         database = new HabitTrackerDatabase(requireContext());
         editName = view.findViewById(R.id.edit_name);
@@ -72,10 +77,7 @@ public class UserProfileFragment extends Fragment {
 
         loadProfile();
 
-        profileImage.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            startActivityForResult(intent, REQUEST_IMAGE_PICK);
-        });
+        profileImage.setOnClickListener(v -> showImagePickerOptions());
 
         view.findViewById(R.id.layout_gender).setOnClickListener(v -> showGenderPicker());
         view.findViewById(R.id.layout_birthdate).setOnClickListener(v -> showDatePicker());
@@ -126,6 +128,57 @@ public class UserProfileFragment extends Fragment {
         cursor.close();
     }
 
+    private void showImagePickerOptions() {
+        String[] options = {"Kamera ile Çek", "Galeriden Seç"};
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Profil Fotoğrafı Seç")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        openCamera();
+                    } else {
+                        openGallery();
+                    }
+                })
+                .show();
+    }
+
+    private void openCamera() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        File photoFile = null;
+        try {
+            photoFile = createImageFile();
+        } catch (java.io.IOException ex) {
+            // Error occurred while creating the File
+            Toast.makeText(requireContext(), "Error creating image file", Toast.LENGTH_SHORT).show();
+        }
+        if (photoFile != null) {
+            cameraImageUri = FileProvider.getUriForFile(requireContext(),
+                    "com.example.habittracker.fileprovider",
+                    photoFile);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri);
+            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+        }
+    }
+
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, REQUEST_IMAGE_PICK);
+    }
+
+    private File createImageFile() throws java.io.IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new java.util.Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = requireContext().getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+        profileImagePath = image.getAbsolutePath();
+        return image;
+    }
+
     private void showGenderPicker() {
         String[] genders = {"Male", "Female", "Other"};
         int selectedIndex = -1;
@@ -171,35 +224,37 @@ public class UserProfileFragment extends Fragment {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, android.content.Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_PICK && data != null && data.getData() != null) {
-            Uri imageUri = data.getData();
-            try {
-                File imagesDir = new File(requireContext().getFilesDir(), "images");
-                if (!imagesDir.exists()) {
-                    imagesDir.mkdirs();
-                }
-                File imageFile = new File(imagesDir, "profile_" + System.currentTimeMillis() + ".jpg");
-
-                InputStream inputStream = requireContext().getContentResolver().openInputStream(imageUri);
-                FileOutputStream outputStream = new FileOutputStream(imageFile);
-                byte[] buffer = new byte[1024];
-                int length;
-                while ((length = inputStream.read(buffer)) > 0) {
-                    outputStream.write(buffer, 0, length);
-                }
-                outputStream.close();
-                inputStream.close();
-
-                profileImagePath = imageFile.getAbsolutePath();
-                profileImage.setImageURI(Uri.fromFile(imageFile));
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(requireContext(), "Error saving image", Toast.LENGTH_SHORT).show();
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == REQUEST_IMAGE_PICK && data != null && data.getData() != null) {
+                Uri imageUri = data.getData();
+                // Save the selected image to the app's internal storage
+                saveImageToInternalStorage(imageUri);
+            } else if (requestCode == REQUEST_IMAGE_CAPTURE) {
+                // The image is already saved to the path, just update the ImageView
+                profileImage.setImageURI(cameraImageUri);
             }
         }
     }
 
-    // Theme is now handled by Material3 DayNight
+    private void saveImageToInternalStorage(Uri uri) {
+        try {
+            InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
+            File file = createImageFile();
+            FileOutputStream outputStream = new FileOutputStream(file);
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+            outputStream.close();
+            inputStream.close();
+            profileImagePath = file.getAbsolutePath();
+            profileImage.setImageURI(Uri.fromFile(file));
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+            Toast.makeText(requireContext(), "Failed to save image", Toast.LENGTH_SHORT).show();
+        }
+    }
 }

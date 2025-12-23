@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.github.mikephil.charting.data.Entry;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -152,30 +154,17 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < 2) {
-            // Add new columns to existing tables
-            try {
-                db.execSQL("ALTER TABLE " + TABLE_USER_PROFILE + " ADD COLUMN gender TEXT");
-                db.execSQL("ALTER TABLE " + TABLE_USER_PROFILE + " ADD COLUMN birthdate TEXT");
-                db.execSQL("ALTER TABLE " + TABLE_HABITS + " ADD COLUMN repeat_type TEXT");
-                db.execSQL("ALTER TABLE " + TABLE_HABITS + " ADD COLUMN days_of_week TEXT");
-                db.execSQL("ALTER TABLE " + TABLE_HABITS + " ADD COLUMN time_of_day TEXT");
-                db.execSQL("ALTER TABLE " + TABLE_HABITS + " ADD COLUMN end_date TEXT");
-                db.execSQL("ALTER TABLE " + TABLE_HABITS + " ADD COLUMN reminder_enabled INTEGER DEFAULT 0");
-                db.execSQL("ALTER TABLE " + TABLE_MOOD_ENTRIES + " ADD COLUMN feeling_tags TEXT");
-            } catch (Exception e) {
-                // If columns already exist, recreate tables
-                db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER_PROFILE);
-                db.execSQL("DROP TABLE IF EXISTS " + TABLE_HABITS);
-                db.execSQL("DROP TABLE IF EXISTS " + TABLE_HABIT_ENTRIES);
-                db.execSQL("DROP TABLE IF EXISTS " + TABLE_MOOD_ENTRIES);
-                db.execSQL("DROP TABLE IF EXISTS " + TABLE_JOURNAL_ENTRIES);
-                db.execSQL("DROP TABLE IF EXISTS " + TABLE_TODO_ITEMS);
-                db.execSQL("DROP TABLE IF EXISTS " + TABLE_EVENTS);
-                db.execSQL("DROP TABLE IF EXISTS " + TABLE_ALARMS);
-                db.execSQL("DROP TABLE IF EXISTS " + TABLE_PHOTOS);
-                db.execSQL("DROP TABLE IF EXISTS " + TABLE_CATEGORIES);
-                onCreate(db);
-            }
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER_PROFILE);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_HABITS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_HABIT_ENTRIES);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_MOOD_ENTRIES);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_JOURNAL_ENTRIES);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_TODO_ITEMS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_EVENTS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_ALARMS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_PHOTOS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_CATEGORIES);
+            onCreate(db);
         }
     }
 
@@ -190,22 +179,21 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         values.put("profile_image_path", profileImagePath);
         values.put("gender", gender);
         values.put("birthdate", birthdate);
-        values.put("created_date", String.valueOf(System.currentTimeMillis()));
         values.put("updated_date", String.valueOf(System.currentTimeMillis()));
         
-        // Check if profile exists
         Cursor cursor = db.query(TABLE_USER_PROFILE, null, null, null, null, null, null);
         if (cursor.getCount() > 0) {
             cursor.close();
-            return db.update(TABLE_USER_PROFILE, values, null, null);
+            return db.update(TABLE_USER_PROFILE, values, "id = 1", null);
         }
         cursor.close();
+        values.put("created_date", String.valueOf(System.currentTimeMillis()));
         return db.insert(TABLE_USER_PROFILE, null, values);
     }
 
     public Cursor getUserProfile() {
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.query(TABLE_USER_PROFILE, null, null, null, null, null, null);
+        return db.query(TABLE_USER_PROFILE, null, "id = 1", null, null, null, null);
     }
 
     // Habit methods
@@ -225,9 +213,29 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return db.insert(TABLE_HABITS, null, values);
     }
 
+    public int updateHabit(long habitId, String name, String category, String color, String icon, String repeatType, String daysOfWeek, String timeOfDay, String endDate, boolean reminderEnabled) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("name", name);
+        values.put("category", category);
+        values.put("color", color);
+        values.put("icon", icon);
+        values.put("repeat_type", repeatType);
+        values.put("days_of_week", daysOfWeek);
+        values.put("time_of_day", timeOfDay);
+        values.put("end_date", endDate);
+        values.put("reminder_enabled", reminderEnabled ? 1 : 0);
+        return db.update(TABLE_HABITS, values, "id = ?", new String[]{String.valueOf(habitId)});
+    }
+
     public Cursor getAllHabits() {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query(TABLE_HABITS, null, null, null, null, null, "created_date DESC");
+    }
+    
+    public Cursor getHabitById(long habitId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.query(TABLE_HABITS, null, "id = ?", new String[]{String.valueOf(habitId)}, null, null, null);
     }
 
     public Cursor getHabitsForDate(String date) {
@@ -251,15 +259,12 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("completed", completed ? 1 : 0);
-        return db.update(TABLE_HABIT_ENTRIES, values, "habit_id = ? AND date = ?", 
-                new String[]{String.valueOf(habitId), date});
+        return db.update(TABLE_HABIT_ENTRIES, values, "habit_id = ? AND date = ?", new String[]{String.valueOf(habitId), date});
     }
 
     public boolean isHabitCompletedForDate(long habitId, String date) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_HABIT_ENTRIES, new String[]{"completed"}, 
-                "habit_id = ? AND date = ?", new String[]{String.valueOf(habitId), date}, 
-                null, null, null);
+        Cursor cursor = db.query(TABLE_HABIT_ENTRIES, new String[]{"completed"}, "habit_id = ? AND date = ?", new String[]{String.valueOf(habitId), date}, null, null, null);
         boolean completed = false;
         if (cursor.moveToFirst()) {
             completed = cursor.getInt(0) == 1;
@@ -270,13 +275,70 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
 
     public int deleteHabit(long habitId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        // First delete all habit entries for this habit
         db.delete(TABLE_HABIT_ENTRIES, "habit_id = ?", new String[]{String.valueOf(habitId)});
-        // Then delete the habit itself
         return db.delete(TABLE_HABITS, "id = ?", new String[]{String.valueOf(habitId)});
     }
+    
+    public List<Entry> getWeeklyHabitSummary(String startDate, String endDate) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        List<Entry> entries = new ArrayList<>();
+        String query = "SELECT strftime('%w', date) as day_of_week, COUNT(*) as count FROM " + TABLE_HABIT_ENTRIES + " WHERE date BETWEEN ? AND ? AND completed = 1 GROUP BY day_of_week ORDER BY day_of_week ASC";
+        Cursor cursor = db.rawQuery(query, new String[]{startDate, endDate});
+        while (cursor.moveToNext()) {
+            entries.add(new Entry(cursor.getInt(0), cursor.getInt(1)));
+        }
+        cursor.close();
+        return entries;
+    }
 
-    // Mood methods
+    public List<Entry> getDailyHabitSummary(String date) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        List<Entry> entries = new ArrayList<>();
+        String query = "SELECT strftime('%H', time_of_day) as hour_of_day, COUNT(*) as count FROM " + TABLE_HABITS + " h JOIN " + TABLE_HABIT_ENTRIES + " he ON h.id = he.habit_id WHERE he.date = ? AND he.completed = 1 GROUP BY hour_of_day ORDER BY hour_of_day ASC";
+        Cursor cursor = db.rawQuery(query, new String[]{date});
+        while (cursor.moveToNext()) {
+            entries.add(new Entry(cursor.getInt(0), cursor.getInt(1)));
+        }
+        cursor.close();
+        return entries;
+    }
+
+    public List<Entry> getMonthlyHabitSummary(String year, String month) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        List<Entry> entries = new ArrayList<>();
+        String query = "SELECT strftime('%d', date) as day_of_month, COUNT(*) as count FROM " + TABLE_HABIT_ENTRIES + " WHERE strftime('%Y', date) = ? AND strftime('%m', date) = ? AND completed = 1 GROUP BY day_of_month ORDER BY day_of_month ASC";
+        Cursor cursor = db.rawQuery(query, new String[]{year, month});
+        while (cursor.moveToNext()) {
+            entries.add(new Entry(cursor.getInt(0), cursor.getInt(1)));
+        }
+        cursor.close();
+        return entries;
+    }
+
+    public Cursor getHabitSummary(String startDate, String endDate) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT " +
+                "(SELECT COUNT(*) FROM " + TABLE_HABIT_ENTRIES + " WHERE date BETWEEN ? AND ? AND completed = 1) as completed, " +
+                "(SELECT COUNT(*) FROM " + TABLE_HABIT_ENTRIES + " WHERE date BETWEEN ? AND ? AND completed = 0) as skipped, " +
+                "0 as failed, " + // Failed is not implemented yet
+                "0 as points, " + // Points are not implemented yet
+                "0 as best_streak"; // Best streak is not implemented yet
+        return db.rawQuery(query, new String[]{startDate, endDate, startDate, endDate});
+    }
+
+    public String getAverageMood(String startDate, String endDate) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT mood_type, COUNT(*) as count FROM " + TABLE_MOOD_ENTRIES + " WHERE date BETWEEN ? AND ? GROUP BY mood_type ORDER BY count DESC LIMIT 1";
+        Cursor cursor = db.rawQuery(query, new String[]{startDate, endDate});
+        String mood = "";
+        if (cursor.moveToFirst()) {
+            mood = cursor.getString(0);
+        }
+        cursor.close();
+        return mood;
+    }
+
+    // Other methods...
     public long insertMoodEntry(String date, String moodType, String feelingTags, String notes) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -301,18 +363,17 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return db.update(TABLE_MOOD_ENTRIES, values, "date = ?", new String[]{date});
     }
 
-    // Journal methods
-    public long insertJournalEntry(String date, String content, String photoPath) {
+    public long insertJournalEntry(String date, String content) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("date", date);
         values.put("content", content);
-        values.put("photo_path", photoPath);
         return db.insert(TABLE_JOURNAL_ENTRIES, null, values);
     }
-    
-    public long insertJournalEntry(String date, String content) {
-        return insertJournalEntry(date, content, null);
+
+    public Cursor getJournalForDate(String date) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.query(TABLE_JOURNAL_ENTRIES, null, "date = ?", new String[]{date}, null, null, null);
     }
 
     public int updateJournalEntry(long id, String content) {
@@ -327,12 +388,6 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return db.delete(TABLE_JOURNAL_ENTRIES, "id = ?", new String[]{String.valueOf(id)});
     }
 
-    public Cursor getJournalForDate(String date) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        return db.query(TABLE_JOURNAL_ENTRIES, null, "date = ?", new String[]{date}, null, null, null);
-    }
-
-    // Todo methods
     public long insertTodoItem(String date, String title, String description, int priority) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -340,8 +395,12 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         values.put("title", title);
         values.put("description", description);
         values.put("priority", priority);
-        values.put("completed", 0);
         return db.insert(TABLE_TODO_ITEMS, null, values);
+    }
+
+    public Cursor getTodosForDate(String date) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.query(TABLE_TODO_ITEMS, null, "date = ?", new String[]{date}, null, null, "priority DESC");
     }
 
     public int updateTodoItem(long id, String title, String description, boolean completed) {
@@ -358,11 +417,6 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return db.delete(TABLE_TODO_ITEMS, "id = ?", new String[]{String.valueOf(id)});
     }
 
-    public Cursor getTodosForDate(String date) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        return db.query(TABLE_TODO_ITEMS, null, "date = ?", new String[]{date}, null, null, "priority DESC, id DESC");
-    }
-
     public int updateTodoCompletion(long todoId, boolean completed) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -370,7 +424,6 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return db.update(TABLE_TODO_ITEMS, values, "id = ?", new String[]{String.valueOf(todoId)});
     }
 
-    // Event methods
     public long insertEvent(String date, String title, String description, String time, boolean alarmSet) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -380,6 +433,11 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         values.put("time", time);
         values.put("alarm_set", alarmSet ? 1 : 0);
         return db.insert(TABLE_EVENTS, null, values);
+    }
+
+    public Cursor getEventsForDate(String date) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.query(TABLE_EVENTS, null, "date = ?", new String[]{date}, null, null, "time ASC");
     }
 
     public int updateEvent(long id, String title, String description, String time) {
@@ -396,19 +454,12 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return db.delete(TABLE_EVENTS, "id = ?", new String[]{String.valueOf(id)});
     }
 
-    public Cursor getEventsForDate(String date) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        return db.query(TABLE_EVENTS, null, "date = ?", new String[]{date}, null, null, "time ASC");
-    }
-
-    // Alarm methods
     public long insertAlarm(String date, String time, String title) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("date", date);
         values.put("time", time);
         values.put("title", title);
-        values.put("enabled", 1);
         return db.insert(TABLE_ALARMS, null, values);
     }
 
@@ -422,7 +473,15 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return db.delete(TABLE_ALARMS, "id = ?", new String[]{String.valueOf(id)});
     }
 
-    // Photo methods
+    public long insertCategory(String name, String color, boolean isCustom) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("name", name);
+        values.put("color", color);
+        values.put("is_custom", isCustom ? 1 : 0);
+        return db.insert(TABLE_CATEGORIES, null, values);
+    }
+
     public long insertPhoto(String date, String photoPath, String caption) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -435,43 +494,5 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
     public Cursor getPhotosForDate(String date) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query(TABLE_PHOTOS, null, "date = ?", new String[]{date}, null, null, "id DESC");
-    }
-
-    // Category methods
-    public long insertCategory(String name, String color, boolean isCustom) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("name", name);
-        values.put("color", color);
-        values.put("is_custom", isCustom ? 1 : 0);
-        return db.insert(TABLE_CATEGORIES, null, values);
-    }
-
-    public Cursor getAllCategories() {
-        SQLiteDatabase db = this.getReadableDatabase();
-        return db.query(TABLE_CATEGORIES, null, null, null, null, null, "is_custom ASC, name ASC");
-    }
-
-    public String getCategoryColor(String categoryName) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_CATEGORIES, new String[]{"color"}, 
-                "name = ?", new String[]{categoryName}, null, null, null);
-        String color = "#4CAF50"; // default color
-        if (cursor.moveToFirst()) {
-            color = cursor.getString(0);
-        }
-        cursor.close();
-        return color;
-    }
-
-    public String getCategoryIcon(String categoryName) {
-        String[] categories = {"Study", "Sport", "Art", "Health", "Work", "Social", "Finance", "Reading", "Cooking", "Travel"};
-        String[] icons = {"📚", "⚽", "🎨", "💊", "💼", "👥", "💰", "📖", "🍳", "✈️"};
-        for (int i = 0; i < categories.length; i++) {
-            if (categories[i].equals(categoryName)) {
-                return icons[i];
-            }
-        }
-        return "📝"; // default icon
     }
 }

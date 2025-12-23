@@ -19,6 +19,11 @@
 
     <style name="Theme.HabitTracker" parent="Base.Theme.HabitTracker" />
 
+    <style name="Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardElevation">4dp</item>
+        <item name="cardCornerRadius">12dp</item>
+    </style>
+
     <style name="Dialog.Transparent" parent="Theme.AppCompat.Dialog">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>

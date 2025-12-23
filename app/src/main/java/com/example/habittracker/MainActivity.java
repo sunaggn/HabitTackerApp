@@ -127,6 +127,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             fragment = new UserProfileFragment();
         } else if (id == R.id.nav_habits) {
             fragment = new HabitsListFragment();
+//        } else if (id == R.id.nav_activity) {
+//            fragment = new ActivityFragment();
         } else if (id == R.id.nav_settings) {
             fragment = new SettingsFragment();
         }

@@ -14,12 +14,13 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 public class AddEventDialog extends DialogFragment {
-    private String date;
     private HabitTrackerDatabase database;
     private EditText editTitle;
     private EditText editDescription;
@@ -32,7 +33,6 @@ public class AddEventDialog extends DialogFragment {
     private TodayFragment.EventItem eventItem; // For editing
 
     public void setDate(String date) {
-        this.date = date;
         this.selectedDate = date;
     }
 
@@ -60,31 +60,43 @@ public class AddEventDialog extends DialogFragment {
         checkAlarm = view.findViewById(R.id.check_alarm);
 
         if (eventItem != null) {
-            builder.setTitle("Edit Event");
+            builder.setTitle(R.string.edit_event);
             editTitle.setText(eventItem.title);
             editDescription.setText(eventItem.description);
             selectedTime = eventItem.time;
             btnTime.setText(selectedTime);
         } else {
-            builder.setTitle("Add Event");
+            builder.setTitle(R.string.add_event);
         }
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
         SimpleDateFormat displayFormat = new SimpleDateFormat("d MMMM yyyy", Locale.ENGLISH);
-        try {
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(sdf.parse(selectedDate));
-            btnDate.setText(displayFormat.format(cal.getTime()));
-        } catch (Exception e) {
-            btnDate.setText("Select Date");
+        if (selectedDate != null && !selectedDate.isEmpty()) {
+            try {
+                Date date = sdf.parse(selectedDate);
+                if (date != null) {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(date);
+                    btnDate.setText(displayFormat.format(cal.getTime()));
+                }
+            } catch (ParseException e) {
+                btnDate.setText(R.string.select_date);
+            }
+        } else {
+            btnDate.setText(R.string.select_date);
         }
 
         btnDate.setOnClickListener(v -> {
             Calendar calendar = Calendar.getInstance();
-            try {
-                calendar.setTime(sdf.parse(selectedDate));
-            } catch (Exception e) {
-                // Use current date
+            if (selectedDate != null && !selectedDate.isEmpty()) {
+                try {
+                    Date date = sdf.parse(selectedDate);
+                    if (date != null) {
+                        calendar.setTime(date);
+                    }
+                } catch (ParseException e) {
+                    // Use current date
+                }
             }
             DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(),
                     (view1, year, month, dayOfMonth) -> {
@@ -112,18 +124,18 @@ public class AddEventDialog extends DialogFragment {
         });
 
         builder.setView(view)
-                .setPositiveButton("Save", (dialog, which) -> {
+                .setPositiveButton(R.string.save, (dialog, which) -> {
                     String title = editTitle.getText().toString().trim();
                     if (!TextUtils.isEmpty(title)) {
                         String description = editDescription.getText().toString().trim();
                         boolean alarmSet = checkAlarm.isChecked();
-                        
+
                         if (eventItem != null) {
                             database.updateEvent(eventItem.id, title, description, selectedTime);
-                            Toast.makeText(requireContext(), "Event updated", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(requireContext(), R.string.event_updated, Toast.LENGTH_SHORT).show();
                         } else {
                             database.insertEvent(selectedDate, title, description, selectedTime, alarmSet);
-                            Toast.makeText(requireContext(), "Event added", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(requireContext(), R.string.event_added, Toast.LENGTH_SHORT).show();
                         }
 
                         if (refreshListener != null) {
@@ -131,7 +143,7 @@ public class AddEventDialog extends DialogFragment {
                         }
                     }
                 })
-                .setNegativeButton("Cancel", null);
+                .setNegativeButton(R.string.cancel, null);
 
         return builder.create();
     }

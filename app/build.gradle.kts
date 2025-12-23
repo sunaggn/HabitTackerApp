@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.viewpager2)
     implementation(libs.recyclerview)
     implementation(libs.materialCalendarView)
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
