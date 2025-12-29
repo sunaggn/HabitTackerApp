@@ -286,6 +286,14 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
 
     public long insertHabitEntry(long habitId, String date, boolean completed) {
         SQLiteDatabase db = this.getWritableDatabase();
+        // Prevent adding entries before the habit was created
+        long createdDate = getHabitCreatedDate(db, habitId);
+        if (createdDate > 0) {
+            long entryDayStart = parseDateToStartOfDay(date);
+            if (entryDayStart > 0 && entryDayStart < startOfDay(createdDate)) {
+                return -1;
+            }
+        }
         ContentValues values = new ContentValues();
         values.put("habit_id", habitId);
         values.put("date", date);
@@ -295,6 +303,14 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
 
     public int updateHabitEntry(long habitId, String date, boolean completed) {
         SQLiteDatabase db = this.getWritableDatabase();
+        // Prevent updating entries before the habit was created
+        long createdDate = getHabitCreatedDate(db, habitId);
+        if (createdDate > 0) {
+            long entryDayStart = parseDateToStartOfDay(date);
+            if (entryDayStart > 0 && entryDayStart < startOfDay(createdDate)) {
+                return 0;
+            }
+        }
         ContentValues values = new ContentValues();
         values.put("completed", completed ? 1 : 0);
         return db.update(TABLE_HABIT_ENTRIES, values, "habit_id = ? AND date = ?", new String[]{String.valueOf(habitId), date});
@@ -376,6 +392,62 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
             if (cursor != null) cursor.close();
         }
         return counts;
+    }
+
+    private long getHabitCreatedDate(SQLiteDatabase db, long habitId) {
+        Cursor cursor = null;
+        try {
+            cursor = db.query(TABLE_HABITS, new String[]{"created_date"}, "id = ?", new String[]{String.valueOf(habitId)}, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int idx = cursor.getColumnIndex("created_date");
+                if (idx != -1) {
+                    return parseCreatedDateValue(cursor.getString(idx));
+                }
+            }
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        return -1;
+    }
+
+    private long parseCreatedDateValue(String raw) {
+        if (raw == null || raw.isEmpty()) {
+            return startOfDay(System.currentTimeMillis());
+        }
+        try {
+            return Long.parseLong(raw);
+        } catch (NumberFormatException ignored) {
+            long fromDateString = parseDateToStartOfDay(raw);
+            if (fromDateString > 0) {
+                return fromDateString;
+            }
+            return startOfDay(System.currentTimeMillis());
+        }
+    }
+
+    private long parseDateToStartOfDay(String date) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(sdf.parse(date));
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.set(Calendar.MILLISECOND, 0);
+            return cal.getTimeInMillis();
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private long startOfDay(long timeInMillis) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(timeInMillis);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTimeInMillis();
     }
 
     public List<Entry> getDailyHabitSummary(String date) {

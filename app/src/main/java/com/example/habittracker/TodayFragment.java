@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -544,6 +545,7 @@ public class TodayFragment extends Fragment implements RefreshListener {
                     int compIdx = cursor.getColumnIndex("completed");
                     int repeatTypeIdx = cursor.getColumnIndex("repeat_type");
                     int daysOfWeekIdx = cursor.getColumnIndex("days_of_week");
+                    int createdIdx = cursor.getColumnIndex("created_date");
 
                     if (idIdx == -1 || nameIdx == -1) continue;
 
@@ -573,7 +575,17 @@ public class TodayFragment extends Fragment implements RefreshListener {
                     String category = catIdx != -1 ? cursor.getString(catIdx) : "Custom";
                     String icon = iconIdx != -1 ? cursor.getString(iconIdx) : "📚";
                     int completed = compIdx != -1 ? cursor.getInt(compIdx) : 0;
-                    habits.add(new HabitItem(habitId, name, category, icon, completed == 1));
+                    long createdDateMs = 0;
+                    if (createdIdx != -1) {
+                        createdDateMs = parseCreatedDateValue(cursor.getString(createdIdx));
+                    }
+                    // Hide habits on days before they were created
+                    long entryDayStart = parseDateToStartOfDay(currentDate);
+                    if (createdDateMs > 0 && entryDayStart > 0 && entryDayStart < startOfDay(createdDateMs)) {
+                        continue;
+                    }
+
+                    habits.add(new HabitItem(habitId, name, category, icon, completed == 1, createdDateMs));
                 }
             }
 
@@ -945,13 +957,15 @@ public class TodayFragment extends Fragment implements RefreshListener {
         String category;
         String icon;
         boolean completed;
+        long createdDateMs;
 
-        HabitItem(long id, String name, String category, String icon, boolean completed) {
+        HabitItem(long id, String name, String category, String icon, boolean completed, long createdDateMs) {
             this.id = id;
             this.name = name;
             this.category = category;
             this.icon = icon;
             this.completed = completed;
+            this.createdDateMs = createdDateMs;
         }
     }
 
@@ -1033,11 +1047,33 @@ public class TodayFragment extends Fragment implements RefreshListener {
             holder.habitCheckbox.setOnCheckedChangeListener(null);
             holder.habitCheckbox.setChecked(habit.completed);
 
-            holder.habitCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                database.insertHabitEntry(habit.id, currentDate, isChecked);
-                // Update the habit item's completed status
-                habit.completed = isChecked;
-            });
+            CompoundButton.OnCheckedChangeListener listener = new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    boolean previousState = habit.completed;
+                    if (isDateBeforeCreation(currentDate, habit.createdDateMs)) {
+                        buttonView.setOnCheckedChangeListener(null);
+                        buttonView.setChecked(previousState);
+                        buttonView.setOnCheckedChangeListener(this);
+                        Toast.makeText(requireContext(), "Bu alışkanlık oluşturulmadan önceki günlere eklenemez", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    long insertResult = database.insertHabitEntry(habit.id, currentDate, isChecked);
+                    if (insertResult == -1) {
+                        // DB rejected (likely past date), revert UI
+                        buttonView.setOnCheckedChangeListener(null);
+                        buttonView.setChecked(previousState);
+                        buttonView.setOnCheckedChangeListener(this);
+                        habit.completed = previousState;
+                        Toast.makeText(requireContext(), "Bu alışkanlık oluşturulmadan önceki günlere eklenemez", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    habit.completed = isChecked;
+                }
+            };
+            holder.habitCheckbox.setOnCheckedChangeListener(listener);
         }
 
         @Override
@@ -1341,6 +1377,53 @@ public class TodayFragment extends Fragment implements RefreshListener {
                 alarmTitle = itemView.findViewById(R.id.alarm_title);
                 alarmTime = itemView.findViewById(R.id.alarm_time);
             }
+        }
+    }
+
+    private boolean isDateBeforeCreation(String dateString, long createdDateMs) {
+        if (createdDateMs <= 0) return false;
+        long entryDay = parseDateToStartOfDay(dateString);
+        if (entryDay < 0) return false;
+        return entryDay < startOfDay(createdDateMs);
+    }
+
+    private long parseDateToStartOfDay(String dateString) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(sdf.parse(dateString));
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.set(Calendar.MILLISECOND, 0);
+            return cal.getTimeInMillis();
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private long startOfDay(long timeInMillis) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(timeInMillis);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTimeInMillis();
+    }
+
+    private long parseCreatedDateValue(String raw) {
+        if (raw == null || raw.isEmpty()) {
+            return startOfDay(System.currentTimeMillis());
+        }
+        try {
+            return Long.parseLong(raw);
+        } catch (NumberFormatException ignored) {
+            long fromDateString = parseDateToStartOfDay(raw);
+            if (fromDateString > 0) {
+                return fromDateString;
+            }
+            return startOfDay(System.currentTimeMillis());
         }
     }
 }
