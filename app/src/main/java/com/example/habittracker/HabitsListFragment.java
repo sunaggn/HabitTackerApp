@@ -32,7 +32,7 @@ public class HabitsListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
-        database = new HabitTrackerDatabase(requireContext());
+        database = HabitTrackerDatabase.getInstance(requireContext());
         habitsRecyclerView = view.findViewById(R.id.habits_recycler_view);
         fabAdd = view.findViewById(R.id.fab_add_habit);
         android.widget.ImageButton btnBack = view.findViewById(R.id.btn_back);
@@ -56,19 +56,31 @@ public class HabitsListFragment extends Fragment {
     }
 
     private void loadHabits() {
-        android.database.Cursor cursor = database.getAllHabits();
-        List<HabitItem> habits = new ArrayList<>();
-        
-        while (cursor.moveToNext()) {
-            long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
-            String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-            String category = cursor.getString(cursor.getColumnIndexOrThrow("category"));
-            habits.add(new HabitItem(id, name, category, false));
+        android.database.Cursor cursor = null;
+        try {
+            cursor = database.getAllHabits();
+            List<HabitItem> habits = new ArrayList<>();
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    int idIdx = cursor.getColumnIndex("id");
+                    int nameIdx = cursor.getColumnIndex("name");
+                    int catIdx = cursor.getColumnIndex("category");
+                    
+                    if (idIdx == -1 || nameIdx == -1) continue;
+                    
+                    long id = cursor.getLong(idIdx);
+                    String name = cursor.getString(nameIdx);
+                    String category = catIdx != -1 ? cursor.getString(catIdx) : "General";
+                    habits.add(new HabitItem(id, name, category, false));
+                }
+            }
+            AllHabitsAdapter adapter = new AllHabitsAdapter(habits);
+            habitsRecyclerView.setAdapter(adapter);
+        } catch (Exception e) {
+            android.util.Log.e("HabitsListFragment", "Error loading habits", e);
+        } finally {
+            if (cursor != null) cursor.close();
         }
-        cursor.close();
-        
-        AllHabitsAdapter adapter = new AllHabitsAdapter(habits);
-        habitsRecyclerView.setAdapter(adapter);
     }
 
     private class HabitItem {

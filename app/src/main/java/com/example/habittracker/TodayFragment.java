@@ -4,7 +4,10 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +18,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.bumptech.glide.Glide;
+
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -59,8 +64,8 @@ public class TodayFragment extends Fragment implements RefreshListener {
     private RecyclerView journalsRecyclerView;
     private RecyclerView alarmsRecyclerView;
     private HabitTrackerDatabase database;
-    private Button btnMood;
-    private Button btnAlarm;
+    private ImageButton btnMood;
+    private ImageButton btnAlarm;
     private ImageButton btnCalendar;
     private ImageButton menuButton;
     private ImageButton btnBackWeekly;
@@ -93,7 +98,7 @@ public class TodayFragment extends Fragment implements RefreshListener {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
             currentDate = sdf.format(Calendar.getInstance().getTime());
         }
-        database = new HabitTrackerDatabase(requireContext());
+        database = HabitTrackerDatabase.getInstance(requireContext());
     }
 
     @Nullable
@@ -105,6 +110,7 @@ public class TodayFragment extends Fragment implements RefreshListener {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        android.util.Log.d("TodayFragment", "onViewCreated for " + currentDate + " instance " + hashCode());
 
         // Apply theme background
         // Theme is now handled by Material3 DayNight
@@ -163,12 +169,23 @@ public class TodayFragment extends Fragment implements RefreshListener {
 
     @Override
     public void onRefresh() {
-        loadHabits();
-        loadTodos();
-        loadEvents();
-        loadJournals();
-        loadAlarms();
-        loadPhoto();
+        if (getView() == null || !isAdded()) {
+            android.util.Log.w("TodayFragment", "onRefresh skipped: view is null or fragment not added for " + currentDate);
+            return;
+        }
+        android.util.Log.d("TodayFragment", "onRefresh started for " + currentDate + " instance " + hashCode());
+        try {
+            loadHabits();
+            loadTodos();
+            loadEvents();
+            loadJournals();
+            loadAlarms();
+            loadPhoto();
+            loadMoodForDate();
+        } catch (Exception e) {
+            android.util.Log.e("TodayFragment", "Error during onRefresh for " + currentDate, e);
+        }
+        android.util.Log.d("TodayFragment", "onRefresh completed for " + currentDate + " instance " + hashCode());
     }
 
     private void setupDateDisplay() {
@@ -262,13 +279,21 @@ public class TodayFragment extends Fragment implements RefreshListener {
     private void setupMoodSlider() {
         btnMood.setOnClickListener(v -> {
             MoodDialog dialog = new MoodDialog();
-
-            android.database.Cursor cursor = database.getMoodForDate(currentDate);
-            if (cursor.moveToFirst()) {
-                String currentMood = cursor.getString(cursor.getColumnIndexOrThrow("mood_type"));
-                dialog.setInitialMood(currentMood);
+            android.database.Cursor cursor = null;
+            try {
+                cursor = database.getMoodForDate(currentDate);
+                if (cursor != null && cursor.moveToFirst()) {
+                    int moodIdx = cursor.getColumnIndex("mood_type");
+                    if (moodIdx != -1) {
+                        String currentMood = cursor.getString(moodIdx);
+                        dialog.setInitialMood(currentMood);
+                    }
+                }
+            } catch (Exception e) {
+                android.util.Log.e("TodayFragment", "Error in setupMoodSlider", e);
+            } finally {
+                if (cursor != null) cursor.close();
             }
-            cursor.close();
 
             dialog.setMoodSelectedListener((mood, feelings) -> {
                 String feelingTags = String.join(",", feelings);
@@ -280,16 +305,16 @@ public class TodayFragment extends Fragment implements RefreshListener {
     }
 
     private void updateMoodButton(String mood) {
-        int index = -1;
-        for (int i = 0; i < moods.length; i++) {
-            if (moods[i].equals(mood)) {
-                index = i;
-                break;
-            }
-        }
-        if (index >= 0) {
-            btnMood.setText(moodEmojis[index]);
-        }
+        // Map moods to colors or tint the icon
+        int colorRes = R.color.text_primary; // Default
+        
+        // For now, we keep the static icon as requested (minimal/supportive).
+        // If we want to show state, we could tint the icon or background.
+        // Let's just unset any stuck state for now or keep it simple.
+        
+        // Example: If a mood is set, maybe tint the background slightly differently?
+        // But the user requested "minimal detail".
+        // So we will just leave the static icon.
     }
 
     private void setupHabitsList() {
@@ -426,43 +451,99 @@ public class TodayFragment extends Fragment implements RefreshListener {
     }
 
     private void loadHabits() {
-        android.database.Cursor cursor = database.getHabitsForDate(currentDate);
-        List<HabitItem> habits = new ArrayList<>();
-        java.util.Set<Long> seenHabitIds = new java.util.HashSet<>();
+        android.database.Cursor cursor = null;
+        try {
+            cursor = database.getHabitsForDate(currentDate);
+            List<HabitItem> habits = new ArrayList<>();
+            java.util.Set<Long> seenHabitIds = new java.util.HashSet<>();
 
-        while (cursor.moveToNext()) {
-            long habitId = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    int idIdx = cursor.getColumnIndex("id");
+                    int nameIdx = cursor.getColumnIndex("name");
+                    int catIdx = cursor.getColumnIndex("category");
+                    int iconIdx = cursor.getColumnIndex("icon");
+                    int compIdx = cursor.getColumnIndex("completed");
 
-            if (seenHabitIds.contains(habitId)) {
-                continue;
+                    if (idIdx == -1 || nameIdx == -1) continue;
+
+                    long habitId = cursor.getLong(idIdx);
+
+                    if (seenHabitIds.contains(habitId)) {
+                        continue;
+                    }
+                    seenHabitIds.add(habitId);
+
+                    String name = cursor.getString(nameIdx);
+                    String category = catIdx != -1 ? cursor.getString(catIdx) : "Custom";
+                    String icon = iconIdx != -1 ? cursor.getString(iconIdx) : "📚";
+                    int completed = compIdx != -1 ? cursor.getInt(compIdx) : 0;
+                    habits.add(new HabitItem(habitId, name, category, icon, completed == 1));
+                }
             }
-            seenHabitIds.add(habitId);
 
-            String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-            String category = cursor.getString(cursor.getColumnIndexOrThrow("category"));
-            String icon = cursor.getString(cursor.getColumnIndexOrThrow("icon"));
-            @SuppressLint("Range") int completed = cursor.getColumnIndex("completed") >= 0 ?
-                cursor.getInt(cursor.getColumnIndex("completed")) : 0;
-            habits.add(new HabitItem(habitId, name, category, icon, completed == 1));
+            HabitAdapter adapter = (HabitAdapter) habitsRecyclerView.getAdapter();
+            if (adapter == null) {
+                adapter = new HabitAdapter(habits);
+                habitsRecyclerView.setAdapter(adapter);
+            } else {
+                adapter.habits = habits;
+                adapter.notifyDataSetChanged();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) cursor.close();
         }
-        cursor.close();
-
-        HabitAdapter adapter = new HabitAdapter(habits);
-        habitsRecyclerView.setAdapter(adapter);
     }
 
     private void loadTodos() {
-        android.database.Cursor cursor = database.getTodosForDate(currentDate);
-        List<TodoItem> todos = new ArrayList<>();
+        android.database.Cursor cursor = null;
+        try {
+            cursor = database.getTodosForDate(currentDate);
+            List<TodoItem> todos = new ArrayList<>();
 
-        while (cursor.moveToNext()) {
-            long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
-            String title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
-            String description = cursor.getString(cursor.getColumnIndexOrThrow("description"));
-            int completed = cursor.getInt(cursor.getColumnIndexOrThrow("completed"));
-            todos.add(new TodoItem(id, title, description, completed == 1));
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    int idIdx = cursor.getColumnIndex("id");
+                    int titleIdx = cursor.getColumnIndex("title");
+                    int descIdx = cursor.getColumnIndex("description");
+                    int completedIdx = cursor.getColumnIndex("completed");
+                    int priorityIdx = cursor.getColumnIndex("priority");
+
+                    if (idIdx == -1 || titleIdx == -1) continue;
+
+                    long id = cursor.getLong(idIdx);
+                    String title = cursor.getString(titleIdx);
+                    String description = descIdx != -1 ? cursor.getString(descIdx) : "";
+                    int completed = completedIdx != -1 ? cursor.getInt(completedIdx) : 0;
+                    int priority = priorityIdx != -1 ? cursor.getInt(priorityIdx) : 0;
+
+                    // Only add active (uncompleted) todos
+                    if (completed == 0) {
+                        todos.add(new TodoItem(id, title, description, priority, false));
+                    }
+                }
+            }
+
+            if (todos.isEmpty()) {
+                todosRecyclerView.setVisibility(View.GONE);
+            } else {
+                todosRecyclerView.setVisibility(View.VISIBLE);
+                TodoAdapter adapter = (TodoAdapter) todosRecyclerView.getAdapter();
+                if (adapter == null) {
+                    adapter = new TodoAdapter(todos);
+                    todosRecyclerView.setAdapter(adapter);
+                } else {
+                    adapter.todos = todos;
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) cursor.close();
         }
-        cursor.close();
 
         todoPlaceholderCard.setOnClickListener(v -> {
             AddTodoDialog dialog = new AddTodoDialog();
@@ -470,55 +551,99 @@ public class TodayFragment extends Fragment implements RefreshListener {
             dialog.setRefreshListener(this);
             dialog.show(getParentFragmentManager(), "add_todo");
         });
-
-        if (todos.isEmpty()) {
-            todosRecyclerView.setVisibility(View.GONE);
-        } else {
-            todosRecyclerView.setVisibility(View.VISIBLE);
-            TodoAdapter adapter = new TodoAdapter(todos);
-            todosRecyclerView.setAdapter(adapter);
-        }
     }
 
     private void loadEvents() {
-        android.database.Cursor cursor = database.getEventsForDate(currentDate);
-        List<EventItem> events = new ArrayList<>();
+        android.database.Cursor cursor = null;
+        try {
+            cursor = database.getEventsForDate(currentDate);
+            List<EventItem> events = new ArrayList<>();
 
-        while (cursor.moveToNext()) {
-            long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
-            String title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
-            String description = cursor.getString(cursor.getColumnIndexOrThrow("description"));
-            String time = cursor.getString(cursor.getColumnIndexOrThrow("time"));
-            events.add(new EventItem(id, title, description, time));
-        }
-        cursor.close();
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    int idIdx = cursor.getColumnIndex("id");
+                    int titleIdx = cursor.getColumnIndex("title");
+                    int descIdx = cursor.getColumnIndex("description");
+                    int timeIdx = cursor.getColumnIndex("time");
 
-        eventPlaceholderCard.setOnClickListener(v -> {
-            AddEventDialog dialog = new AddEventDialog();
-            dialog.setDate(currentDate);
-            dialog.setRefreshListener(this);
-            dialog.show(getParentFragmentManager(), "add_event");
-        });
+                    if (idIdx == -1 || titleIdx == -1) continue;
 
-        if (events.isEmpty()) {
-            eventsRecyclerView.setVisibility(View.GONE);
-        } else {
-            eventsRecyclerView.setVisibility(View.VISIBLE);
-            EventAdapter adapter = new EventAdapter(events);
-            eventsRecyclerView.setAdapter(adapter);
+                    long id = cursor.getLong(idIdx);
+                    String title = cursor.getString(titleIdx);
+                    String description = descIdx != -1 ? cursor.getString(descIdx) : "";
+                    String time = timeIdx != -1 ? cursor.getString(timeIdx) : "";
+                    events.add(new EventItem(id, title, description, time));
+                }
+            }
+            
+            eventPlaceholderCard.setOnClickListener(v -> {
+                AddEventDialog dialog = new AddEventDialog();
+                dialog.setDate(currentDate);
+                dialog.setRefreshListener(this);
+                dialog.show(getParentFragmentManager(), "add_event");
+            });
+
+            if (events.isEmpty()) {
+                eventsRecyclerView.setVisibility(View.GONE);
+            } else {
+                eventsRecyclerView.setVisibility(View.VISIBLE);
+                EventAdapter adapter = (EventAdapter) eventsRecyclerView.getAdapter();
+                if (adapter == null) {
+                    adapter = new EventAdapter(events);
+                    eventsRecyclerView.setAdapter(adapter);
+                } else {
+                    adapter.events = events;
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) cursor.close();
         }
     }
 
     private void loadJournals() {
-        android.database.Cursor cursor = database.getJournalForDate(currentDate);
-        List<JournalItem> journals = new ArrayList<>();
+        android.database.Cursor cursor = null;
+        try {
+            cursor = database.getJournalForDate(currentDate);
+            List<JournalItem> journals = new ArrayList<>();
 
-        while (cursor.moveToNext()) {
-            long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
-            String content = cursor.getString(cursor.getColumnIndexOrThrow("content"));
-            journals.add(new JournalItem(id, content));
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    int idIdx = cursor.getColumnIndex("id");
+                    int contentIdx = cursor.getColumnIndex("content");
+                    int photoIdx = cursor.getColumnIndex("photo_path");
+
+                    if (idIdx == -1 || contentIdx == -1) continue;
+
+                    long id = cursor.getLong(idIdx);
+                    String content = cursor.getString(contentIdx);
+                    String photoPath = photoIdx != -1 ? cursor.getString(photoIdx) : null;
+                    journals.add(new JournalItem(id, content, photoPath));
+                }
+            }
+
+            if (journals.isEmpty()) {
+                journalsRecyclerView.setVisibility(View.GONE);
+                journalPlaceholderCard.setVisibility(View.VISIBLE);
+            } else {
+                journalsRecyclerView.setVisibility(View.VISIBLE);
+                journalPlaceholderCard.setVisibility(View.GONE);
+                JournalAdapter adapter = (JournalAdapter) journalsRecyclerView.getAdapter();
+                if (adapter == null) {
+                    adapter = new JournalAdapter(journals);
+                    journalsRecyclerView.setAdapter(adapter);
+                } else {
+                    adapter.journals = journals;
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) cursor.close();
         }
-        cursor.close();
 
         journalPlaceholderCard.setOnClickListener(v -> {
             AddJournalEntryDialog dialog = new AddJournalEntryDialog();
@@ -526,64 +651,88 @@ public class TodayFragment extends Fragment implements RefreshListener {
             dialog.setRefreshListener(this);
             dialog.show(getParentFragmentManager(), "add_journal");
         });
-
-        if (journals.isEmpty()) {
-            journalsRecyclerView.setVisibility(View.GONE);
-            journalPlaceholderCard.setVisibility(View.VISIBLE);
-        } else {
-            journalsRecyclerView.setVisibility(View.VISIBLE);
-            journalPlaceholderCard.setVisibility(View.GONE);
-            JournalAdapter adapter = new JournalAdapter(journals);
-            journalsRecyclerView.setAdapter(adapter);
-        }
     }
 
     private void loadAlarms() {
-        android.database.Cursor cursor = database.getAlarmsForDate(currentDate);
-        List<AlarmItem> alarms = new ArrayList<>();
+        android.database.Cursor cursor = null;
+        try {
+            cursor = database.getAlarmsForDate(currentDate);
+            List<AlarmItem> alarms = new ArrayList<>();
 
-        while (cursor.moveToNext()) {
-            long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
-            String time = cursor.getString(cursor.getColumnIndexOrThrow("time"));
-            String title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
-            alarms.add(new AlarmItem(id, time, title));
-        }
-        cursor.close();
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    int idIdx = cursor.getColumnIndex("id");
+                    int timeIdx = cursor.getColumnIndex("time");
+                    int titleIdx = cursor.getColumnIndex("title");
 
-        if (alarms.isEmpty()) {
-            alarmsRecyclerView.setVisibility(View.GONE);
-        } else {
-            alarmsRecyclerView.setVisibility(View.VISIBLE);
-            AlarmAdapter adapter = new AlarmAdapter(alarms);
-            alarmsRecyclerView.setAdapter(adapter);
+                    if (idIdx == -1 || timeIdx == -1) continue;
+
+                    long id = cursor.getLong(idIdx);
+                    String time = cursor.getString(timeIdx);
+                    String title = titleIdx != -1 ? cursor.getString(titleIdx) : "Alarm";
+                    alarms.add(new AlarmItem(id, time, title));
+                }
+            }
+
+            if (alarms.isEmpty()) {
+                alarmsRecyclerView.setVisibility(View.GONE);
+            } else {
+                alarmsRecyclerView.setVisibility(View.VISIBLE);
+                AlarmAdapter adapter = (AlarmAdapter) alarmsRecyclerView.getAdapter();
+                if (adapter == null) {
+                    adapter = new AlarmAdapter(alarms);
+                    alarmsRecyclerView.setAdapter(adapter);
+                } else {
+                    adapter.alarms = alarms;
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) cursor.close();
         }
     }
 
     private void loadPhoto() {
-        android.database.Cursor cursor = database.getPhotosForDate(currentDate);
-        if (cursor.moveToFirst()) {
-            String photoPath = cursor.getString(cursor.getColumnIndexOrThrow("photo_path"));
-            if (photoPath != null && !photoPath.isEmpty()) {
-                File imageFile = new File(photoPath);
-                if (imageFile.exists()) {
-                    showPhotoPreview(Uri.fromFile(imageFile));
+        android.util.Log.d("TodayFragment", "loadPhoto called for " + currentDate);
+        android.database.Cursor cursor = null;
+        try {
+            cursor = database.getPhotosForDate(currentDate);
+            if (cursor != null && cursor.moveToFirst()) {
+                int pathIdx = cursor.getColumnIndex("photo_path");
+                String photoPath = pathIdx != -1 ? cursor.getString(pathIdx) : null;
+                if (photoPath != null && !photoPath.isEmpty()) {
+                    File imageFile = new File(photoPath);
+                    if (imageFile.exists()) {
+                        showPhotoPreview(Uri.fromFile(imageFile));
+                    } else {
+                        showPhotoPlaceholder();
+                    }
                 } else {
                     showPhotoPlaceholder();
                 }
             } else {
                 showPhotoPlaceholder();
             }
-        } else {
+        } catch (Exception e) {
+            android.util.Log.e("TodayFragment", "Error loading photo", e);
             showPhotoPlaceholder();
+        } finally {
+            if (cursor != null) cursor.close();
         }
-        cursor.close();
     }
 
     private void showPhotoPreview(Uri imageUri) {
         ViewGroup.LayoutParams previewParams = photoPreview.getLayoutParams();
         previewParams.height = (int) (getResources().getDisplayMetrics().heightPixels * 0.3);
         photoPreview.setLayoutParams(previewParams);
-        photoPreview.setImageURI(imageUri);
+        
+        Glide.with(this)
+                .load(imageUri)
+                .centerCrop()
+                .into(photoPreview);
+                
         photoPreview.setVisibility(View.VISIBLE);
 
         photoPlaceholderContainer.setVisibility(View.GONE);
@@ -662,24 +811,37 @@ public class TodayFragment extends Fragment implements RefreshListener {
     }
 
     private void loadMoodForDate() {
-        android.database.Cursor cursor = database.getMoodForDate(currentDate);
-        if (cursor.moveToFirst()) {
-            String moodType = cursor.getString(cursor.getColumnIndexOrThrow("mood_type"));
-            updateMoodButton(moodType);
-        } else {
-            btnMood.setText("😐");
+        android.database.Cursor cursor = null;
+        try {
+            cursor = database.getMoodForDate(currentDate);
+            if (cursor != null && cursor.moveToFirst()) {
+                int moodIdx = cursor.getColumnIndex("mood_type");
+                if (moodIdx != -1) {
+                    String moodType = cursor.getString(moodIdx);
+                    updateMoodButton(moodType);
+                }
+            }
+        } catch (Exception e) {
+            android.util.Log.e("TodayFragment", "Error loading mood", e);
+        } finally {
+            if (cursor != null) cursor.close();
         }
-        cursor.close();
     }
 
     private void saveMood(String moodType, String feelingTags) {
-        android.database.Cursor existing = database.getMoodForDate(currentDate);
-        if (existing.getCount() > 0) {
-            database.updateMoodEntry(currentDate, moodType, feelingTags, "");
-        } else {
-            database.insertMoodEntry(currentDate, moodType, feelingTags, "");
+        android.database.Cursor existing = null;
+        try {
+            existing = database.getMoodForDate(currentDate);
+            if (existing != null && existing.getCount() > 0) {
+                database.updateMoodEntry(currentDate, moodType, feelingTags, "");
+            } else {
+                database.insertMoodEntry(currentDate, moodType, feelingTags, "");
+            }
+        } catch (Exception e) {
+            android.util.Log.e("TodayFragment", "Error saving mood", e);
+        } finally {
+            if (existing != null) existing.close();
         }
-        existing.close();
     }
 
     public class HabitItem {
@@ -702,12 +864,14 @@ public class TodayFragment extends Fragment implements RefreshListener {
         public long id;
         public String title;
         public String description;
+        public int priority;
         public boolean completed;
 
-        public TodoItem(long id, String title, String description, boolean completed) {
+        public TodoItem(long id, String title, String description, int priority, boolean completed) {
             this.id = id;
             this.title = title;
             this.description = description;
+            this.priority = priority;
             this.completed = completed;
         }
     }
@@ -729,10 +893,12 @@ public class TodayFragment extends Fragment implements RefreshListener {
     public class JournalItem {
         public long id;
         public String content;
+        public String photoPath;
 
-        public JournalItem(long id, String content) {
+        public JournalItem(long id, String content, String photoPath) {
             this.id = id;
             this.content = content;
+            this.photoPath = photoPath;
         }
     }
 
@@ -822,6 +988,12 @@ public class TodayFragment extends Fragment implements RefreshListener {
             holder.todoCheckbox.setChecked(todo.completed);
             holder.todoTitle.setText(todo.title);
 
+            // Set priority indicator color
+            int priorityColor = getResources().getColor(R.color.primary); // Default Low (0)
+            if (todo.priority == 1) priorityColor = android.graphics.Color.parseColor("#FF9800"); // Medium
+            else if (todo.priority == 2) priorityColor = android.graphics.Color.parseColor("#F44336"); // High
+            holder.priorityIndicator.setBackgroundColor(priorityColor);
+
             holder.todoCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (isChecked) {
                     database.updateTodoCompletion(todo.id, true);
@@ -864,11 +1036,13 @@ public class TodayFragment extends Fragment implements RefreshListener {
         class TodoViewHolder extends RecyclerView.ViewHolder {
             CheckBox todoCheckbox;
             TextView todoTitle;
+            View priorityIndicator;
 
             TodoViewHolder(@NonNull View itemView) {
                 super(itemView);
                 todoCheckbox = itemView.findViewById(R.id.todo_checkbox);
                 todoTitle = itemView.findViewById(R.id.todo_title);
+                priorityIndicator = itemView.findViewById(R.id.priority_indicator);
             }
         }
     }
@@ -894,7 +1068,7 @@ public class TodayFragment extends Fragment implements RefreshListener {
             holder.eventTitle.setText(event.title);
             holder.eventTime.setText(event.time != null ? event.time : "");
 
-            holder.itemView.setOnLongClickListener(v -> {
+            holder.itemView.setOnClickListener(v -> {
                 AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
                 builder.setItems(new CharSequence[]{"Edit", "Delete"}, (dialog, which) -> {
                     switch (which) {
@@ -912,7 +1086,6 @@ public class TodayFragment extends Fragment implements RefreshListener {
                     }
                 });
                 builder.show();
-                return true;
             });
         }
 
@@ -953,6 +1126,18 @@ public class TodayFragment extends Fragment implements RefreshListener {
             JournalItem journal = journals.get(position);
             holder.journalContent.setText(journal.content);
 
+            if (!TextUtils.isEmpty(journal.photoPath)) {
+                File file = new File(journal.photoPath);
+                if (file.exists()) {
+                    holder.imageCard.setVisibility(View.VISIBLE);
+                    Glide.with(holder.itemView.getContext()).load(file).into(holder.journalImage);
+                } else {
+                    holder.imageCard.setVisibility(View.GONE);
+                }
+            } else {
+                holder.imageCard.setVisibility(View.GONE);
+            }
+
             holder.itemView.setOnClickListener(v -> {
                 AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
                 builder.setItems(new CharSequence[]{"Edit", "Delete"}, (dialog, which) -> {
@@ -981,10 +1166,14 @@ public class TodayFragment extends Fragment implements RefreshListener {
 
         class JournalViewHolder extends RecyclerView.ViewHolder {
             TextView journalContent;
+            View imageCard;
+            ImageView journalImage;
 
             JournalViewHolder(@NonNull View itemView) {
                 super(itemView);
                 journalContent = itemView.findViewById(R.id.journal_content);
+                imageCard = itemView.findViewById(R.id.journal_image_card);
+                journalImage = itemView.findViewById(R.id.journal_image);
             }
         }
     }
@@ -1010,17 +1199,25 @@ public class TodayFragment extends Fragment implements RefreshListener {
             holder.alarmTitle.setText(alarm.title);
             holder.alarmTime.setText(alarm.time != null ? alarm.time : "");
 
-            holder.itemView.setOnLongClickListener(v -> {
+            holder.itemView.setOnClickListener(v -> {
                 AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-                builder.setItems(new CharSequence[]{"Delete"}, (dialog, which) -> {
-                    if (which == 0) {
-                        cancelAlarm(alarm.id);
-                        database.deleteAlarm(alarm.id);
-                        loadAlarms();
+                builder.setItems(new CharSequence[]{"Edit", "Delete"}, (dialog, which) -> {
+                    switch (which) {
+                        case 0: // Edit
+                            AddAlarmDialog editDialog = new AddAlarmDialog();
+                            editDialog.setDate(currentDate);
+                            editDialog.setAlarmItem(alarm);
+                            editDialog.setRefreshListener(TodayFragment.this);
+                            editDialog.show(getParentFragmentManager(), "edit_alarm");
+                            break;
+                        case 1: // Delete
+                            cancelAlarm(alarm.id);
+                            database.deleteAlarm(alarm.id);
+                            loadAlarms();
+                            break;
                     }
                 });
                 builder.show();
-                return true;
             });
         }
 

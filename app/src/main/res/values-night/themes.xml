@@ -7,13 +7,24 @@
         <item name="colorPrimaryContainer">@color/plum_primary</item>
         <item name="colorOnPrimaryContainer">@color/text_main_dark</item>
         
-        <item name="android:colorBackground">@color/plum_bg_dark</item>
-        <item name="colorSurface">@color/plum_card_dark</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorSurface">@color/surface</item>
         <item name="colorOnSurface">@color/text_main_dark</item>
         <item name="colorOnBackground">@color/text_main_dark</item>
         
-        <item name="android:windowBackground">@color/plum_bg_dark</item>
-        <item name="android:statusBarColor">@color/plum_bg_dark</item>
-        <item name="android:navigationBarColor">@color/plum_bg_dark</item>
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <!-- Set default card style -->
+        <item name="materialCardViewStyle">@style/Widget.App.MaterialCardView</item>
+        <!-- Dialog Theme -->
+        <item name="alertDialogTheme">@style/Theme.App.AlertDialog</item>
     </style>
+
+    <style name="ShapeAppearance.App.CircleImageView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
 </resources>

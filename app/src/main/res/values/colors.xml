@@ -4,11 +4,40 @@
     <color name="white">#FFFFFFFF</color>
     <color name="grey">#808080</color>
 
-    <!-- Plum Theme Colors - Light Mode -->
+    <!-- Plum Theme Colors - Light Mode (Tiered Hierarchy & Borders) -->
     <color name="plum_primary">#8E44AD</color>
-    <color name="plum_bg_light">#FDFCFE</color>
-    <color name="plum_card_light">#FFFFFF</color>
+    <color name="plum_bg_light">#FAF9FC</color>
     <color name="text_main_light">#2D132C</color>
+
+    <!-- Tiered Backgrounds & Borders -->
+    <color name="plum_bg_light_gradient_start">#FAF9FC</color>
+    <color name="plum_bg_light_gradient_center">#FAF9FC</color>
+    <color name="plum_bg_light_gradient_end">#FAF9FC</color>
+    
+    <!-- 3-Tier Hierarchy for Cards (Light Mode Refined) -->
+    <!-- Tier A: Primary Content (Habits, Stats, Analytics) - DARKEST -->
+    <color name="plum_card_tier_a_bg">#D8CFE6</color>
+    <color name="plum_card_tier_a_border">#B6A7C9</color>
+
+    <!-- Tier B: Secondary / Action Placeholders - MID-TONE -->
+    <color name="plum_card_tier_b_bg">#E6DFEF</color>
+    <color name="plum_card_tier_b_border">#C7B9D5</color>
+
+    <!-- Tier C: Settings & Profile Cards - LIGHTEST CARD TONE -->
+    <color name="plum_card_tier_c_bg">#EDE8F3</color>
+    <color name="plum_card_tier_c_border">#D0C5D8</color>
+
+    <color name="card_border_light">#08000000</color> <!-- Keep for legacy/default -->
+    <color name="soft_shadow_color_light">#20000000</color>
+
+    <!-- Modern Input Field Colors -->
+    <color name="input_field_background">#F5F2F8</color>
+    <color name="input_field_border">#E8E0EE</color>
+
+    <!-- Day Selector Colors -->
+    <color name="day_selector_selected_bg">#E8D5F2</color>
+    <color name="day_selector_selected_glow">#20BB8FCE</color>
+    <color name="day_selector_unselected_text">#9A8A9E</color>
 
     <!-- Legacy colors for compatibility -->
     <color name="primary">#8E44AD</color> <!-- Plum Primary -->
@@ -22,8 +51,8 @@
 
     <color name="error">#D93B3B</color>
 
-    <color name="background">#FDFCFE</color> <!-- Plum Light Background -->
-    <color name="surface">#FFFFFF</color> <!-- Pure white for cards -->
+    <color name="background">@color/plum_bg_light</color>
+    <color name="surface">@color/plum_card_tier_a_bg</color>
 
     <color name="text_on_gradient">#FFFFFF</color> <!-- White for text on gradient -->
 
@@ -32,10 +61,13 @@
     <color name="text_secondary">#6A5C6E</color> <!-- Secondary Text Light -->
     <color name="text_hint">#9E9E9E</color>
 
-    <color name="card_background">#FFFFFF</color>
-    <color name="card_border">#E8D5F2</color>
+    <color name="card_background">@color/plum_card_tier_a_bg</color>
+    <color name="card_border">@color/plum_card_tier_a_border</color>
     <color name="divider">#E0E0E0</color>
 
     <color name="placeholder_background">#F5EFFF</color> <!-- Soft Plum for placeholders -->
     <color name="selected_day_background">#E8D5F2</color> <!-- Soft Plum for selected day -->
+
+    <!-- Soft background for items without hard borders -->
+    <color name="item_background_soft">#08000000</color>
 </resources>

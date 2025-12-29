@@ -70,7 +70,7 @@ public class WeeklyViewFragment extends Fragment {
         
         // Theme is now handled by Material3 DayNight
         
-        database = new HabitTrackerDatabase(requireContext());
+        database = HabitTrackerDatabase.getInstance(requireContext());
         weeklyRecyclerView = view.findViewById(R.id.weekly_recycler_view);
         weekTitle = view.findViewById(R.id.week_title);
         menuButton = view.findViewById(R.id.menu_button);
@@ -130,33 +130,63 @@ public class WeeklyViewFragment extends Fragment {
                 
                 // Load todos for this day
                 List<TodoItem> todos = new ArrayList<>();
-                android.database.Cursor todoCursor = database.getTodosForDate(date);
-                while (todoCursor.moveToNext()) {
-                    long id = todoCursor.getLong(todoCursor.getColumnIndexOrThrow("id"));
-                    String title = todoCursor.getString(todoCursor.getColumnIndexOrThrow("title"));
-                    String description = todoCursor.getString(todoCursor.getColumnIndexOrThrow("description"));
-                    int completed = todoCursor.getInt(todoCursor.getColumnIndexOrThrow("completed"));
-                    todos.add(new TodoItem(id, title, description, completed == 1));
+                android.database.Cursor todoCursor = null;
+                try {
+                    todoCursor = database.getTodosForDate(date);
+                    if (todoCursor != null) {
+                        while (todoCursor.moveToNext()) {
+                            int idIdx = todoCursor.getColumnIndex("id");
+                            int titleIdx = todoCursor.getColumnIndex("title");
+                            int descIdx = todoCursor.getColumnIndex("description");
+                            int compIdx = todoCursor.getColumnIndex("completed");
+                            
+                            if (idIdx == -1 || titleIdx == -1) continue;
+                            
+                            long id = todoCursor.getLong(idIdx);
+                            String title = todoCursor.getString(titleIdx);
+                            String description = descIdx != -1 ? todoCursor.getString(descIdx) : "";
+                            int completed = compIdx != -1 ? todoCursor.getInt(compIdx) : 0;
+                            todos.add(new TodoItem(id, title, description, completed == 1));
+                        }
+                    }
+                } catch (Exception e) {
+                    android.util.Log.e("WeeklyViewFragment", "Error loading todos for " + date, e);
+                } finally {
+                    if (todoCursor != null) todoCursor.close();
                 }
-                todoCursor.close();
                 
                 // Load events for this day
                 List<EventItem> events = new ArrayList<>();
-                android.database.Cursor eventCursor = database.getEventsForDate(date);
-                while (eventCursor.moveToNext()) {
-                    long id = eventCursor.getLong(eventCursor.getColumnIndexOrThrow("id"));
-                    String title = eventCursor.getString(eventCursor.getColumnIndexOrThrow("title"));
-                    String description = eventCursor.getString(eventCursor.getColumnIndexOrThrow("description"));
-                    String time = eventCursor.getString(eventCursor.getColumnIndexOrThrow("time"));
-                    events.add(new EventItem(id, title, description, time));
+                android.database.Cursor eventCursor = null;
+                try {
+                    eventCursor = database.getEventsForDate(date);
+                    if (eventCursor != null) {
+                        while (eventCursor.moveToNext()) {
+                            int idIdx = eventCursor.getColumnIndex("id");
+                            int titleIdx = eventCursor.getColumnIndex("title");
+                            int descIdx = eventCursor.getColumnIndex("description");
+                            int timeIdx = eventCursor.getColumnIndex("time");
+                            
+                            if (idIdx == -1 || titleIdx == -1) continue;
+                            
+                            long id = eventCursor.getLong(idIdx);
+                            String title = eventCursor.getString(titleIdx);
+                            String description = descIdx != -1 ? eventCursor.getString(descIdx) : "";
+                            String time = timeIdx != -1 ? eventCursor.getString(timeIdx) : "";
+                            events.add(new EventItem(id, title, description, time));
+                        }
+                    }
+                } catch (Exception e) {
+                    android.util.Log.e("WeeklyViewFragment", "Error loading events for " + date, e);
+                } finally {
+                    if (eventCursor != null) eventCursor.close();
                 }
-                eventCursor.close();
                 
                 weekData.add(new DayData(date, dayName, dateDisplay, todos, events));
                 cal.add(Calendar.DAY_OF_YEAR, 1);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            android.util.Log.e("WeeklyViewFragment", "Error calculating week", e);
         }
         
         WeeklyAdapter adapter = new WeeklyAdapter(weekData);

@@ -35,7 +35,7 @@ public class AddPhotoDialog extends DialogFragment {
     @NonNull
     @Override
     public AlertDialog onCreateDialog(Bundle savedInstanceState) {
-        database = new HabitTrackerDatabase(requireContext());
+        database = HabitTrackerDatabase.getInstance(requireContext());
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         
         android.view.LayoutInflater inflater = requireActivity().getLayoutInflater();

@@ -95,7 +95,7 @@ public class MonthlyCalendarContentFragment extends Fragment {
         
         // Theme is now handled by Material3 DayNight
         
-        database = new HabitTrackerDatabase(requireContext());
+        database = HabitTrackerDatabase.getInstance(requireContext());
         monthlyRecyclerView = view.findViewById(R.id.monthly_recycler_view);
         monthTitle = view.findViewById(R.id.month_title);
 
@@ -148,15 +148,30 @@ public class MonthlyCalendarContentFragment extends Fragment {
 
             // Load events for this day
             List<EventItem> events = new ArrayList<>();
-            android.database.Cursor cursor = database.getEventsForDate(date);
-            while (cursor.moveToNext()) {
-                long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
-                String title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
-                String description = cursor.getString(cursor.getColumnIndexOrThrow("description"));
-                String time = cursor.getString(cursor.getColumnIndexOrThrow("time"));
-                events.add(new EventItem(id, title, description, time));
+            android.database.Cursor cursor = null;
+            try {
+                cursor = database.getEventsForDate(date);
+                if (cursor != null) {
+                    while (cursor.moveToNext()) {
+                        int idIdx = cursor.getColumnIndex("id");
+                        int titleIdx = cursor.getColumnIndex("title");
+                        int descIdx = cursor.getColumnIndex("description");
+                        int timeIdx = cursor.getColumnIndex("time");
+                        
+                        if (idIdx == -1 || titleIdx == -1) continue;
+                        
+                        long id = cursor.getLong(idIdx);
+                        String title = cursor.getString(titleIdx);
+                        String description = descIdx != -1 ? cursor.getString(descIdx) : "";
+                        String time = timeIdx != -1 ? cursor.getString(timeIdx) : "";
+                        events.add(new EventItem(id, title, description, time));
+                    }
+                }
+            } catch (Exception e) {
+                android.util.Log.e("MonthlyCalendarContent", "Error loading events for " + date, e);
+            } finally {
+                if (cursor != null) cursor.close();
             }
-            cursor.close();
 
             daysList.add(new DayData(date, dayNumber, isCurrentMonth, isToday, events));
             dayCal.add(Calendar.DAY_OF_YEAR, 1);

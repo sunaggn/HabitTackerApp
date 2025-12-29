@@ -40,6 +40,7 @@ public class AddHabitFragment extends Fragment {
     private Switch switchEndDate;
     private Switch switchReminder;
     private TextView textEndDate;
+    private CheckBox checkNotifyCompletion, checkShowInWidget, checkPrivateHabit;
     private Button btnSave;
     private HabitTrackerDatabase database;
 
@@ -77,7 +78,7 @@ public class AddHabitFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        database = new HabitTrackerDatabase(requireContext());
+        database = HabitTrackerDatabase.getInstance(requireContext());
         initializeViews(view);
 
         for (int i = 0; i < 7; i++) {
@@ -112,34 +113,54 @@ public class AddHabitFragment extends Fragment {
         switchEndDate = view.findViewById(R.id.switch_end_date);
         switchReminder = view.findViewById(R.id.switch_reminder);
         textEndDate = view.findViewById(R.id.text_end_date);
+        checkNotifyCompletion = view.findViewById(R.id.check_notify_completion);
+        checkShowInWidget = view.findViewById(R.id.check_show_in_widget);
+        checkPrivateHabit = view.findViewById(R.id.check_private_habit);
         btnSave = view.findViewById(R.id.btn_save);
         view.findViewById(R.id.btn_back).setOnClickListener(v -> getParentFragmentManager().popBackStack());
     }
 
     private void loadHabitData() {
-        Cursor cursor = database.getHabitById(habitId);
-        if (cursor != null && cursor.moveToFirst()) {
-            editHabitName.setText(cursor.getString(cursor.getColumnIndexOrThrow("name")));
-            selectedIcon = cursor.getString(cursor.getColumnIndexOrThrow("icon"));
-            textSelectedIcon.setText(selectedIcon);
-            selectedColor = cursor.getString(cursor.getColumnIndexOrThrow("color"));
-            repeatType = cursor.getString(cursor.getColumnIndexOrThrow("repeat_type"));
-            endDate = cursor.getString(cursor.getColumnIndexOrThrow("end_date"));
-            reminderEnabled = cursor.getInt(cursor.getColumnIndexOrThrow("reminder_enabled")) == 1;
+        android.database.Cursor cursor = null;
+        try {
+            cursor = database.getHabitById(habitId);
+            if (cursor != null && cursor.moveToFirst()) {
+                int nameIdx = cursor.getColumnIndex("name");
+                int iconIdx = cursor.getColumnIndex("icon");
+                int colorIdx = cursor.getColumnIndex("color");
+                int repeatIdx = cursor.getColumnIndex("repeat_type");
+                int endIdx = cursor.getColumnIndex("end_date");
+                int reminderIdx = cursor.getColumnIndex("reminder_enabled");
+                int daysIdx = cursor.getColumnIndex("days_of_week");
 
-            String daysOfWeek = cursor.getString(cursor.getColumnIndexOrThrow("days_of_week"));
-            if (daysOfWeek != null && !daysOfWeek.isEmpty()) {
-                List<String> days = Arrays.asList(daysOfWeek.split(","));
-                for(int i=0; i<selectedDays.size(); i++) {
-                    selectedDays.set(i, days.contains(String.valueOf(i)));
+                if (nameIdx != -1) editHabitName.setText(cursor.getString(nameIdx));
+                if (iconIdx != -1) {
+                    selectedIcon = cursor.getString(iconIdx);
+                    textSelectedIcon.setText(selectedIcon);
                 }
-            }
-            
-            switchEndDate.setChecked(!TextUtils.isEmpty(endDate));
-            textEndDate.setText(endDate);
-            switchReminder.setChecked(reminderEnabled);
+                if (colorIdx != -1) selectedColor = cursor.getString(colorIdx);
+                if (repeatIdx != -1) repeatType = cursor.getString(repeatIdx);
+                if (endIdx != -1) endDate = cursor.getString(endIdx);
+                if (reminderIdx != -1) reminderEnabled = cursor.getInt(reminderIdx) == 1;
 
-            cursor.close();
+                if (daysIdx != -1) {
+                    String daysOfWeek = cursor.getString(daysIdx);
+                    if (daysOfWeek != null && !daysOfWeek.isEmpty()) {
+                        List<String> days = Arrays.asList(daysOfWeek.split(","));
+                        for(int i=0; i<selectedDays.size(); i++) {
+                            selectedDays.set(i, days.contains(String.valueOf(i)));
+                        }
+                    }
+                }
+                
+                switchEndDate.setChecked(!TextUtils.isEmpty(endDate));
+                textEndDate.setText(endDate);
+                switchReminder.setChecked(reminderEnabled);
+            }
+        } catch (Exception e) {
+            android.util.Log.e("AddHabitFragment", "Error loading habit data", e);
+        } finally {
+            if (cursor != null) cursor.close();
         }
     }
 

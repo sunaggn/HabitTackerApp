@@ -7,6 +7,16 @@
     android:padding="24dp"
     android:background="@drawable/dialog_background_modern">
 
+    <TextView
+        android:id="@+id/dialog_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add To-Do"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="?attr/colorOnSurface"
+        android:layout_marginBottom="16dp"/>
+
     <EditText
         android:id="@+id/todo_edit_title"
         android:layout_width="match_parent"
@@ -25,6 +35,50 @@
         android:textColorHint="?attr/colorOnSurfaceVariant"
         android:backgroundTint="?attr/colorPrimary"
         android:layout_marginTop="16dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Priority"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="?attr/colorOnSurface"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"/>
+
+    <RadioGroup
+        android:id="@+id/todo_priority_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/priority_low"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Low"
+            android:checked="true"
+            android:textColor="?attr/colorOnSurface"/>
+
+        <RadioButton
+            android:id="@+id/priority_medium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Med"
+            android:textColor="?attr/colorOnSurface"/>
+
+        <RadioButton
+            android:id="@+id/priority_high"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="High"
+            android:textColor="?attr/colorOnSurface"/>
+
+    </RadioGroup>
+
 
     <LinearLayout
         android:layout_width="match_parent"

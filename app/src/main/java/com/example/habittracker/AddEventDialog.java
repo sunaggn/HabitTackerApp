@@ -3,15 +3,17 @@ package com.example.habittracker;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
+import android.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
 import java.text.ParseException;
@@ -49,7 +51,7 @@ public class AddEventDialog extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        database = new HabitTrackerDatabase(requireContext());
+        database = HabitTrackerDatabase.getInstance(requireContext());
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
 
         android.view.LayoutInflater inflater = requireActivity().getLayoutInflater();
@@ -61,14 +63,16 @@ public class AddEventDialog extends DialogFragment {
         btnTime = view.findViewById(R.id.btn_time);
         checkAlarm = view.findViewById(R.id.check_alarm);
 
+        TextView dialogTitle = view.findViewById(R.id.dialog_title);
+
         if (eventItem != null) {
-            builder.setTitle(R.string.edit_event);
+            dialogTitle.setText(R.string.edit_event);
             editTitle.setText(eventItem.title);
             editDescription.setText(eventItem.description);
             selectedTime = eventItem.time;
             btnTime.setText(selectedTime);
         } else {
-            builder.setTitle(R.string.add_event);
+            dialogTitle.setText(R.string.add_event);
         }
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
@@ -152,7 +156,24 @@ public class AddEventDialog extends DialogFragment {
         btnCancel.setOnClickListener(v -> dismiss());
 
         android.app.Dialog dialog = builder.setView(view).create();
-        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            android.view.WindowManager.LayoutParams lp = new android.view.WindowManager.LayoutParams();
+            lp.copyFrom(dialog.getWindow().getAttributes());
+            lp.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.9);
+            lp.height = android.view.WindowManager.LayoutParams.WRAP_CONTENT;
+            dialog.getWindow().setAttributes(lp);
+            dialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN | android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        }
         return dialog;
+    }
+
+    @Override
+    public void onDismiss(@NonNull DialogInterface dialog) {
+        super.onDismiss(dialog);
+        if (getActivity() != null) {
+            getActivity().getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        }
     }
 }

@@ -4,44 +4,46 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:attr/colorBackground"
-    android:fitsSystemWindows="true">
+    android:background="@color/background">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:fitsSystemWindows="true">
+        android:fillViewport="true">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="16dp"
             android:paddingTop="24dp"
             android:paddingBottom="24dp">
 
             <ImageButton
                 android:id="@+id/menu_button"
-                android:layout_width="48dp"
-                android:layout_height="34dp"
+                android:layout_width="34dp"
+                android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/menu"
                 android:src="@drawable/ic_menu_hamburger"
-                    app:tint="?attr/colorOnBackground"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                app:tint="?attr/colorOnSurface"
+                android:alpha="0.7"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <ImageButton
                 android:id="@+id/btn_back_weekly"
-                android:layout_width="48dp"
-                android:layout_height="34dp"
+                android:layout_width="30dp"
+                android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Back to weekly view"
-                android:src="@android:drawable/ic_menu_revert"
-                    app:tint="?attr/colorOnBackground"
-                    app:layout_constraintStart_toEndOf="@id/menu_button"
-                    app:layout_constraintTop_toTopOf="parent" />
+                android:src="@drawable/ic_calendar_event_filled"
+                app:tint="?attr/colorOnSurface"
+                android:alpha="0.7"
+                app:layout_constraintStart_toEndOf="@id/menu_button"
+                app:layout_constraintTop_toTopOf="parent" />
 
+            <!-- Modern Day Selector - Pill-shaped buttons -->
             <LinearLayout
                 android:id="@+id/day_navigation_boxes"
                 android:layout_width="wrap_content"
@@ -54,186 +56,181 @@
 
                 <TextView
                     android:id="@+id/day_monday"
-                    android:layout_width="34dp"
-                    android:layout_height="34dp"
-                    android:background="@drawable/rounded_card"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/day_selector_pill"
                     android:gravity="center"
                     android:text="M"
-                    android:textSize="13sp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="?attr/colorOnBackground"
-                    android:padding="4dp"
+                    android:textColor="@color/day_selector_unselected_text"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <TextView
                     android:id="@+id/day_tuesday"
-                    android:layout_width="34dp"
-                    android:layout_height="34dp"
-                    android:background="@drawable/rounded_card"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/day_selector_pill"
                     android:gravity="center"
                     android:text="T"
-                    android:textSize="13sp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="?attr/colorOnBackground"
-                    android:layout_marginStart="2dp"
-                    android:padding="4dp"
+                    android:textColor="@color/day_selector_unselected_text"
+                    android:layout_marginStart="6dp"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <TextView
                     android:id="@+id/day_wednesday"
-                    android:layout_width="34dp"
-                    android:layout_height="34dp"
-                    android:background="@drawable/rounded_card"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/day_selector_pill"
                     android:gravity="center"
                     android:text="W"
-                    android:textSize="13sp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="?attr/colorOnBackground"
-                    android:layout_marginStart="2dp"
-                    android:padding="4dp"
+                    android:textColor="@color/day_selector_unselected_text"
+                    android:layout_marginStart="6dp"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <TextView
                     android:id="@+id/day_thursday"
-                    android:layout_width="34dp"
-                    android:layout_height="34dp"
-                    android:background="@drawable/rounded_card"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/day_selector_pill"
                     android:gravity="center"
                     android:text="T"
-                    android:textSize="13sp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="?attr/colorOnBackground"
-                    android:layout_marginStart="2dp"
-                    android:padding="4dp"
+                    android:textColor="@color/day_selector_unselected_text"
+                    android:layout_marginStart="6dp"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <TextView
                     android:id="@+id/day_friday"
-                    android:layout_width="34dp"
-                    android:layout_height="34dp"
-                    android:background="@drawable/rounded_card"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/day_selector_pill"
                     android:gravity="center"
                     android:text="F"
-                    android:textSize="13sp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="?attr/colorOnBackground"
-                    android:layout_marginStart="2dp"
-                    android:padding="4dp"
+                    android:textColor="@color/day_selector_unselected_text"
+                    android:layout_marginStart="6dp"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <TextView
                     android:id="@+id/day_saturday"
-                    android:layout_width="34dp"
-                    android:layout_height="34dp"
-                    android:background="@drawable/rounded_card"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/day_selector_pill"
                     android:gravity="center"
                     android:text="S"
-                    android:textSize="13sp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="?attr/colorOnBackground"
-                    android:layout_marginStart="2dp"
-                    android:padding="4dp"
+                    android:textColor="@color/day_selector_unselected_text"
+                    android:layout_marginStart="6dp"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <TextView
                     android:id="@+id/day_sunday"
-                    android:layout_width="34dp"
-                    android:layout_height="34dp"
-                    android:background="@drawable/rounded_card"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/day_selector_pill"
                     android:gravity="center"
                     android:text="S"
-                    android:textSize="13sp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="?attr/colorOnBackground"
-                    android:layout_marginStart="2dp"
-                    android:padding="4dp"
+                    android:textColor="@color/day_selector_unselected_text"
+                    android:layout_marginStart="6dp"
                     android:clickable="true"
                     android:focusable="true" />
 
             </LinearLayout>
 
+
+
+            <!-- Simplified Hero Section - Clean and focused -->
             <LinearLayout
                 android:id="@+id/date_calendar_container"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="32dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
+                android:paddingStart="4dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/menu_button">
-
-                <ImageButton
-                    android:id="@+id/btn_calendar"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/calendar"
-                    android:src="@android:drawable/ic_menu_today"
-                    app:tint="?attr/colorPrimary" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/day_navigation_boxes">
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginStart="8dp">
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/today_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="TODAY"
-                        android:textSize="24sp"
+                        android:textSize="14sp"
+                        android:letterSpacing="0.1"
                         android:textStyle="bold"
-                        android:textColor="?attr/colorOnBackground"
-                        android:fontFamily="sans-serif-medium" />
+                        android:textColor="?attr/colorPrimary" />
 
                     <TextView
                         android:id="@+id/date_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="16 December"
-                        android:textSize="17sp"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:layout_marginTop="4dp"
-                        android:letterSpacing="0.01" />
+                        android:textAppearance="@style/TextAppearance.App.HeroDate"
+                        android:textColor="?attr/colorOnBackground"
+                        android:includeFontPadding="false" />
 
                 </LinearLayout>
 
+                <ImageButton
+                    android:id="@+id/btn_calendar"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/calendar"
+                    android:src="@android:drawable/ic_menu_today"
+                    app:tint="?attr/colorOnSurfaceVariant" />
+
             </LinearLayout>
 
-            <Button
+            <ImageButton
                 android:id="@+id/btn_mood"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:text="😐"
-                android:textSize="24sp"
+                android:src="@drawable/ic_mood_face"
+                android:scaleType="centerInside"
                 android:background="@drawable/rounded_button"
-                android:textColor="?attr/colorOnSurface"
-                android:padding="0dp"
-                android:gravity="center"
+                android:padding="12dp"
                 android:backgroundTint="?attr/colorSurface"
-                app:cornerRadius="28dp"
+                app:tint="?attr/colorOnSurface"
+                android:contentDescription="Log Mood"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/date_calendar_container" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/btn_alarm"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:text="⏰"
-                android:textSize="28sp"
+                android:src="@drawable/ic_alarm_clock"
+                android:scaleType="centerInside"
                 android:background="@drawable/rounded_button"
-                android:textColor="?attr/colorOnPrimary"
-                android:padding="0dp"
-                android:gravity="center"
+                android:padding="12dp"
                 android:backgroundTint="?attr/colorPrimary"
-                app:cornerRadius="28dp"
+                app:tint="?attr/colorOnPrimary"
+                android:contentDescription="Set Alarm"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/btn_mood"
                 app:layout_constraintTop_toTopOf="@id/btn_mood"
@@ -244,12 +241,10 @@
                 android:id="@+id/habits_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="40dp"
                 android:text="Habits"
+                android:textAppearance="@style/TextAppearance.App.SectionTitle"
                 android:textColor="?attr/colorOnBackground"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-medium"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/date_calendar_container" />
 
@@ -257,7 +252,7 @@
                 android:id="@+id/habits_recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="12dp"
                 android:nestedScrollingEnabled="false"
                 app:layout_constraintTop_toBottomOf="@id/habits_title" />
 
@@ -265,12 +260,10 @@
                 android:id="@+id/photo_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="32dp"
                 android:text="Today's Photo"
+                android:textAppearance="@style/TextAppearance.App.SectionTitle"
                 android:textColor="?attr/colorOnBackground"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-medium"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/habits_recycler_view" />
 
@@ -280,10 +273,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:minHeight="56dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="?attr/colorSurface"
-                app:strokeWidth="0dp"
+                style="@style/Widget.App.MaterialCardView.TierB"
                 app:layout_constraintTop_toBottomOf="@id/photo_title">
 
                 <FrameLayout
@@ -308,13 +298,14 @@
                         android:orientation="horizontal"
                         android:padding="12dp">
 
-                        <TextView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
                             android:layout_marginEnd="12dp"
-                            android:gravity="center"
-                            android:text="📷"
-                            android:textSize="20sp" />
+                            android:src="@drawable/ic_camera_filled"
+                            app:tint="?attr/colorOnSurface"
+                            android:alpha="0.7"
+                            android:contentDescription="Camera Icon" />
 
                         <TextView
                             android:id="@+id/photo_placeholder"
@@ -335,12 +326,10 @@
                 android:id="@+id/todos_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="32dp"
                 android:text="To-Do's"
+                android:textAppearance="@style/TextAppearance.App.SectionTitle"
                 android:textColor="?attr/colorOnBackground"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-medium"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/photo_card" />
 
@@ -350,9 +339,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:minHeight="56dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="?attr/colorSurface"
+                style="@style/Widget.App.MaterialCardView.TierB"
                 app:layout_constraintTop_toBottomOf="@id/todos_title">
 
                 <LinearLayout
@@ -363,13 +350,14 @@
                     android:gravity="center_vertical"
                     android:minHeight="56dp">
 
-                    <TextView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:text="✓"
-                        android:textSize="20sp"
-                        android:gravity="center"
-                        android:layout_marginEnd="12dp" />
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="12dp"
+                        android:src="@drawable/ic_check_circle_filled"
+                        app:tint="?attr/colorOnSurface"
+                        android:alpha="0.7"
+                        android:contentDescription="Check Icon" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -395,12 +383,10 @@
                 android:id="@+id/events_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="32dp"
                 android:text="Events"
+                android:textAppearance="@style/TextAppearance.App.SectionTitle"
                 android:textColor="?attr/colorOnBackground"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-medium"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/todos_recycler_view" />
 
@@ -410,9 +396,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:minHeight="56dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="?attr/colorSurface"
+                style="@style/Widget.App.MaterialCardView.TierB"
                 app:layout_constraintTop_toBottomOf="@id/events_title">
 
                 <LinearLayout
@@ -423,13 +407,14 @@
                     android:gravity="center_vertical"
                     android:minHeight="56dp">
 
-                    <TextView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:text="📅"
-                        android:textSize="20sp"
-                        android:gravity="center"
-                        android:layout_marginEnd="12dp" />
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="12dp"
+                        android:src="@drawable/ic_calendar_event_filled"
+                        app:tint="?attr/colorOnSurface"
+                        android:alpha="0.7"
+                        android:contentDescription="Event Icon" />
 
                     <TextView
                         android:id="@+id/event_placeholder_text"
@@ -456,12 +441,10 @@
                 android:id="@+id/journal_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="32dp"
                 android:text="Journal"
+                android:textAppearance="@style/TextAppearance.App.SectionTitle"
                 android:textColor="?attr/colorOnBackground"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-medium"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/events_recycler_view" />
 
@@ -471,9 +454,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:minHeight="56dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="?attr/colorSurface"
+                style="@style/Widget.App.MaterialCardView.TierB"
                 app:layout_constraintTop_toBottomOf="@id/journal_title">
 
                 <LinearLayout
@@ -484,13 +465,14 @@
                     android:gravity="center_vertical"
                     android:minHeight="56dp">
 
-                    <TextView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:text="✍️"
-                        android:textSize="20sp"
-                        android:gravity="center"
-                        android:layout_marginEnd="12dp" />
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="12dp"
+                        android:src="@drawable/ic_edit_filled"
+                        app:tint="@color/text_on_card"
+                        android:alpha="0.7"
+                        android:contentDescription="Journal Icon" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -519,11 +501,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:text="Alarms"
+                android:textAppearance="@style/TextAppearance.App.SectionTitle"
                 android:textColor="?attr/colorOnBackground"
-                android:textSize="20sp"
-                android:fontFamily="sans-serif-medium"
-                android:textStyle="bold"
-                android:letterSpacing="0.01"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/journals_recycler_view" />
 

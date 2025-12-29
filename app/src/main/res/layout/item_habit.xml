@@ -3,11 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:cardElevation="2dp"
-    app:cardCornerRadius="20dp"
-    app:cardBackgroundColor="?attr/colorSurface"
-    android:layout_marginBottom="4dp"
-    app:cardUseCompatPadding="true">
+    style="@style/Widget.App.MaterialCardView.TierA"
+    android:layout_marginBottom="16dp"
+
+    android:foreground="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -19,8 +20,8 @@
             android:id="@+id/habit_checkbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minWidth="24dp"
-            android:minHeight="24dp"
+            android:minWidth="28dp"
+            android:minHeight="28dp"
             app:buttonTint="?attr/colorPrimary"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -28,8 +29,8 @@
 
         <TextView
             android:id="@+id/habit_icon"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:layout_marginStart="16dp"
             android:text="📚"
             android:textSize="20sp"
@@ -54,21 +55,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Habit Name"
-                android:textSize="17sp"
-                android:textStyle="normal"
-                android:fontFamily="sans-serif-medium"
-                android:textColor="?attr/colorOnSurface"
-                android:letterSpacing="0.01" />
+                android:textAppearance="@style/TextAppearance.App.CardTitle"
+                android:textColor="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/habit_category"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Category"
-                android:textSize="14sp"
+                android:textAppearance="@style/TextAppearance.App.CardSubtitle"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                android:layout_marginTop="4dp"
-                android:letterSpacing="0.01"/>
+                android:layout_marginTop="6dp"/>
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

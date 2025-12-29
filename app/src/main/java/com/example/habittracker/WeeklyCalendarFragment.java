@@ -38,7 +38,7 @@ public class WeeklyCalendarFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
-        database = new HabitTrackerDatabase(requireContext());
+        database = HabitTrackerDatabase.getInstance(requireContext());
         calendarView = view.findViewById(R.id.calendar_view);
         btnBack = view.findViewById(R.id.btn_back);
 

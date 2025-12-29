@@ -2,6 +2,7 @@ package com.example.habittracker;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -9,6 +10,8 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,7 +40,7 @@ public class AddTodoDialog extends DialogFragment {
     @NonNull
     @Override
     public android.app.Dialog onCreateDialog(Bundle savedInstanceState) {
-        database = new HabitTrackerDatabase(requireContext());
+        database = HabitTrackerDatabase.getInstance(requireContext());
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
 
         LayoutInflater inflater = requireActivity().getLayoutInflater();
@@ -45,17 +48,23 @@ public class AddTodoDialog extends DialogFragment {
 
         EditText todoEditText = view.findViewById(R.id.todo_edit_title);
         EditText todoEditDescription = view.findViewById(R.id.todo_edit_description);
+        TextView dialogTitle = view.findViewById(R.id.dialog_title);
         TextView btnSave = view.findViewById(R.id.btn_save);
         TextView btnCancel = view.findViewById(R.id.btn_cancel);
+        RadioGroup priorityGroup = view.findViewById(R.id.todo_priority_group);
 
         if (todoItem != null) {
             // Edit mode
-            builder.setTitle("Edit To-Do");
+            dialogTitle.setText("Edit To-Do");
             todoEditText.setText(todoItem.title);
             todoEditDescription.setText(todoItem.description);
+            
+            if (todoItem.priority == 0) priorityGroup.check(R.id.priority_low);
+            else if (todoItem.priority == 1) priorityGroup.check(R.id.priority_medium);
+            else if (todoItem.priority == 2) priorityGroup.check(R.id.priority_high);
         } else {
             // Add mode
-            builder.setTitle("Add To-Do");
+            dialogTitle.setText("Add To-Do");
         }
 
         btnSave.setOnClickListener(v -> {
@@ -68,11 +77,21 @@ public class AddTodoDialog extends DialogFragment {
 
             if (todoItem != null) {
                 // Update existing item
-                database.updateTodoItem(todoItem.id, title, description, todoItem.completed);
+                int priority = 0;
+                int checkedId = priorityGroup.getCheckedRadioButtonId();
+                if (checkedId == R.id.priority_medium) priority = 1;
+                else if (checkedId == R.id.priority_high) priority = 2;
+
+                database.updateTodoItem(todoItem.id, title, description, priority, todoItem.completed);
                 Toast.makeText(getContext(), "To-Do updated", Toast.LENGTH_SHORT).show();
             } else {
                 // Add new item
-                database.insertTodoItem(date, title, description, 0);
+                int priority = 0;
+                int checkedId = priorityGroup.getCheckedRadioButtonId();
+                if (checkedId == R.id.priority_medium) priority = 1;
+                else if (checkedId == R.id.priority_high) priority = 2;
+
+                database.insertTodoItem(date, title, description, priority);
                 Toast.makeText(getContext(), "To-Do added", Toast.LENGTH_SHORT).show();
             }
 
@@ -101,5 +120,13 @@ public class AddTodoDialog extends DialogFragment {
         });
 
         return dialog;
+    }
+
+    @Override
+    public void onDismiss(@NonNull DialogInterface dialog) {
+        super.onDismiss(dialog);
+        if (getActivity() != null) {
+            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        }
     }
 }

@@ -9,6 +9,37 @@
     <color name="plum_card_dark">#251F2B</color>
     <color name="text_main_dark">#F5EFFF</color>
 
+    <!-- Modern UI Gradient Colors - Enhanced for subtle depth -->
+    <color name="plum_bg_dark_gradient_start">#1E1A24</color>
+    <color name="plum_bg_dark_gradient_center">#1C1822</color>
+    <color name="plum_bg_dark_gradient_end">#1A161E</color>
+    <color name="card_border_dark">#10FFFFFF</color> <!-- 6% white - softer -->
+    <color name="soft_shadow_color_dark">#100A14</color>
+
+    <!-- Tiered Backgrounds & Borders (Dark Mode Sync) -->
+    <color name="plum_card_tier_a_bg">@color/plum_habit_card</color>
+    <color name="plum_card_tier_a_border">@color/card_border_dark</color>
+
+    <color name="plum_card_tier_b_bg">@color/plum_todo_card</color>
+    <color name="plum_card_tier_b_border">@color/card_border_dark</color>
+
+    <color name="plum_card_tier_c_bg">@color/plum_card_dark</color>
+    <color name="plum_card_tier_c_border">@color/card_border_dark</color>
+
+    <!-- Specialized Card Colors for Tonal Differentiation -->
+    <color name="plum_habit_card">#2D2338</color> <!-- Deeper purple -->
+    <color name="plum_todo_card">#211E26</color> <!-- Muted gray-purple -->
+    <color name="plum_photo_card">#2D2A35</color> <!-- Light gray-purple -->
+
+    <!-- Modern Input Field Colors -->
+    <color name="input_field_background">#2A2530</color>
+    <color name="input_field_border">#3A3440</color>
+
+    <!-- Day Selector Colors -->
+    <color name="day_selector_selected_bg">#3A3440</color>
+    <color name="day_selector_selected_glow">#20BB8FCE</color>
+    <color name="day_selector_unselected_text">#6A5C6E</color>
+
     <!-- Legacy colors for compatibility -->
     <color name="primary">#BB8FCE</color> <!-- Plum Primary Dark -->
     <color name="primary_light">#8E44AD</color> <!-- Medium Plum -->
@@ -21,8 +52,8 @@
 
     <color name="error">#D93B3B</color>
 
-    <color name="background">#1A161E</color> <!-- Plum Dark Background -->
-    <color name="surface">#251F2B</color> <!-- Dark card surface -->
+    <color name="background">@color/plum_bg_dark_gradient_end</color>
+    <color name="surface">@color/plum_card_dark</color>
 
     <color name="text_on_gradient">#F5EFFF</color> <!-- Light text for dark gradient -->
 
@@ -31,11 +62,13 @@
     <color name="text_secondary">#B8A5C8</color> <!-- Secondary Text Dark -->
     <color name="text_hint">#6A5C6E</color>
 
-    <color name="card_background">#251F2B</color>
-    <color name="card_border">#3A3440</color>
+    <color name="card_background">@color/plum_card_dark</color>
+    <color name="card_border">@color/card_border_dark</color>
     <color name="divider">#3A3440</color>
 
     <color name="placeholder_background">#2A2530</color> <!-- Dark Plum for placeholders -->
     <color name="selected_day_background">#3A3440</color> <!-- Dark Plum for selected day -->
-</resources>
 
+    <!-- Soft background for items without hard borders -->
+    <color name="item_background_soft">#10FFFFFF</color>
+</resources>

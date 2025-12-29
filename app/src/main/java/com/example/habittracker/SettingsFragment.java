@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,13 +15,15 @@ import androidx.fragment.app.Fragment;
 import android.content.SharedPreferences;
 import android.widget.ImageButton;
 
+import com.google.android.material.switchmaterial.SwitchMaterial;
+
 import java.io.File;
 import java.util.Locale;
 
 public class SettingsFragment extends Fragment {
 
     private TextView textMode;
-    private Switch switchEmailNotifications;
+    private SwitchMaterial switchEmailNotifications;
 
     private SharedPreferences preferences;
     private HabitTrackerDatabase database;
@@ -46,7 +47,7 @@ public class SettingsFragment extends Fragment {
 
         preferences = requireContext()
                 .getSharedPreferences("app_settings", android.content.Context.MODE_PRIVATE);
-        database = new HabitTrackerDatabase(requireContext());
+        database = HabitTrackerDatabase.getInstance(requireContext());
 
         textMode = view.findViewById(R.id.text_mode);
         switchEmailNotifications = view.findViewById(R.id.switch_email_notifications);

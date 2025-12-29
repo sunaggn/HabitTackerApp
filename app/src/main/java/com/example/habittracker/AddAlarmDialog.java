@@ -24,6 +24,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Objects;
 
 public class AddAlarmDialog extends DialogFragment {
     private String date;
@@ -41,10 +42,16 @@ public class AddAlarmDialog extends DialogFragment {
         this.refreshListener = listener;
     }
 
+    private TodayFragment.AlarmItem alarmItem; // For editing
+
+    public void setAlarmItem(TodayFragment.AlarmItem alarmItem) {
+        this.alarmItem = alarmItem;
+    }
+
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        database = new HabitTrackerDatabase(requireContext());
+        database = HabitTrackerDatabase.getInstance(requireContext());
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         
         android.view.LayoutInflater inflater = requireActivity().getLayoutInflater();
@@ -53,8 +60,25 @@ public class AddAlarmDialog extends DialogFragment {
         editTitle = view.findViewById(R.id.edit_title);
         btnTime = view.findViewById(R.id.btn_time);
         
+        // Handle Edit Mode
+        if (alarmItem != null) {
+            editTitle.setText(alarmItem.title);
+            selectedTime = alarmItem.time;
+            btnTime.setText(selectedTime);
+            // Optionally change title of dialog if layout supported it, but it's simple
+        }
+
         btnTime.setOnClickListener(v -> {
             Calendar calendar = Calendar.getInstance();
+            // Parse existing time if available
+            if (!selectedTime.isEmpty()) {
+                try {
+                    String[] parts = selectedTime.split(":");
+                    calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(parts[0]));
+                    calendar.set(Calendar.MINUTE, Integer.parseInt(parts[1]));
+                } catch (Exception ignored) {}
+            }
+
             TimePickerDialog timePickerDialog = new TimePickerDialog(requireContext(),
                     (view1, hourOfDay, minute) -> {
                         selectedTime = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute);
@@ -73,14 +97,24 @@ public class AddAlarmDialog extends DialogFragment {
             String title = editTitle.getText().toString().trim();
             if (!TextUtils.isEmpty(title) && !TextUtils.isEmpty(selectedTime)) {
                 if (checkPermissions()) {
-                    long alarmId = database.insertAlarm(date, selectedTime, title);
+                    long alarmId;
+                    if (alarmItem != null) {
+                        database.updateAlarm(alarmItem.id, selectedTime, title);
+                        alarmId = alarmItem.id;
+                        // Cancel old alarm before scheduling new one (optional but good practice)
+                        // We rely on scheduleAlarm to overwrite if ID is same, or we just update DB
+                    } else {
+                        alarmId = database.insertAlarm(date, selectedTime, title);
+                    }
+
                     if (scheduleAlarm(alarmId, date, selectedTime, title)) {
-                        Toast.makeText(requireContext(), "Alarm added", Toast.LENGTH_SHORT).show();
+                        String msg = alarmItem != null ? "Alarm updated" : "Alarm added";
+                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
                         if (refreshListener != null) {
                             refreshListener.onRefresh();
                         }
                     } else {
-                        Toast.makeText(requireContext(), "Alarm added but could not schedule", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Alarm saved but could not schedule", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     Toast.makeText(requireContext(), "Please grant notification permission in settings", Toast.LENGTH_LONG).show();
@@ -142,7 +176,7 @@ public class AddAlarmDialog extends DialogFragment {
             // Parse date and time
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
             Calendar alarmCalendar = Calendar.getInstance();
-            alarmCalendar.setTime(dateFormat.parse(date));
+            alarmCalendar.setTime(Objects.requireNonNull(dateFormat.parse(date)));
 
             String[] timeParts = time.split(":");
             int hour = Integer.parseInt(timeParts[0]);
@@ -172,30 +206,13 @@ public class AddAlarmDialog extends DialogFragment {
             );
 
             // Schedule alarm
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(
-                        AlarmManager.RTC_WAKEUP,
-                        alarmCalendar.getTimeInMillis(),
-                        pendingIntent
-                );
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                alarmManager.setExact(
-                        AlarmManager.RTC_WAKEUP,
-                        alarmCalendar.getTimeInMillis(),
-                        pendingIntent
-                );
-            } else {
-                alarmManager.set(
-                        AlarmManager.RTC_WAKEUP,
-                        alarmCalendar.getTimeInMillis(),
-                        pendingIntent
-                );
-            }
+            alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    alarmCalendar.getTimeInMillis(),
+                    pendingIntent
+            );
 
             return true;
-        } catch (ParseException e) {
-            e.printStackTrace();
-            return false;
         } catch (Exception e) {
             e.printStackTrace();
             return false;

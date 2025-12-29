@@ -52,14 +52,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+        getWindow().getDecorView().setBackgroundColor(androidx.core.content.ContextCompat.getColor(this, R.color.background));
         
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawer_layout), (v, insets) -> {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_content_container), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        database = new HabitTrackerDatabase(this);
+        database = HabitTrackerDatabase.getInstance(this);
         
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
@@ -88,26 +89,36 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void loadUserProfile() {
-        android.database.Cursor cursor = database.getUserProfile();
-        if (cursor.moveToFirst()) {
-            View headerView = navigationView.getHeaderView(0);
-            if (headerView != null) {
-                TextView userName = headerView.findViewById(R.id.nav_user_name);
-                TextView userEmail = headerView.findViewById(R.id.nav_user_email);
-                
-                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                String surname = cursor.getString(cursor.getColumnIndexOrThrow("surname"));
-                String email = cursor.getString(cursor.getColumnIndexOrThrow("email"));
-                
-                if (name != null && surname != null) {
-                    userName.setText(name + " " + surname);
-                }
-                if (email != null) {
-                    userEmail.setText(email);
+        android.database.Cursor cursor = null;
+        try {
+            cursor = database.getUserProfile();
+            if (cursor != null && cursor.moveToFirst()) {
+                View headerView = navigationView.getHeaderView(0);
+                if (headerView != null) {
+                    TextView userName = headerView.findViewById(R.id.nav_user_name);
+                    TextView userEmail = headerView.findViewById(R.id.nav_user_email);
+                    
+                    int nameIdx = cursor.getColumnIndex("name");
+                    int surnameIdx = cursor.getColumnIndex("surname");
+                    int emailIdx = cursor.getColumnIndex("email");
+                    
+                    String name = nameIdx != -1 ? cursor.getString(nameIdx) : null;
+                    String surname = surnameIdx != -1 ? cursor.getString(surnameIdx) : null;
+                    String email = emailIdx != -1 ? cursor.getString(emailIdx) : null;
+                    
+                    if (name != null && surname != null) {
+                        userName.setText(name + " " + surname);
+                    }
+                    if (email != null) {
+                        userEmail.setText(email);
+                    }
                 }
             }
+        } catch (Exception e) {
+            android.util.Log.e("MainActivity", "Error loading user profile", e);
+        } finally {
+            if (cursor != null) cursor.close();
         }
-        cursor.close();
     }
 
     @Override
@@ -127,8 +138,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             fragment = new UserProfileFragment();
         } else if (id == R.id.nav_habits) {
             fragment = new HabitsListFragment();
-//        } else if (id == R.id.nav_activity) {
-//            fragment = new ActivityFragment();
+        } else if (id == R.id.nav_activity) {
+            fragment = new ActivityFragment();
         } else if (id == R.id.nav_settings) {
             fragment = new SettingsFragment();
         }
@@ -219,34 +230,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void refreshTodayFragment() {
-        // Refresh the current TodayFragment in ViewPager
-        if (viewPager != null && viewPager.getVisibility() == View.VISIBLE && pagerAdapter != null) {
-            try {
-                // Get the current fragment from ViewPager2
-                int currentItem = viewPager.getCurrentItem();
-                
-                // Find fragment using FragmentManager
-                androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
-                
-                // Try to find TodayFragment in the fragment manager
-                List<Fragment> fragments = fm.getFragments();
-                for (Fragment fragment : fragments) {
-                    if (fragment instanceof TodayFragment && fragment.isAdded() && fragment.isResumed()) {
-                        ((TodayFragment) fragment).onRefresh();
-                        return;
-                    }
+        android.util.Log.d("MainActivity", "refreshTodayFragment called");
+        // Refresh all added TodayFragment instances without recreating them
+        try {
+            androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
+            List<Fragment> fragments = fm.getFragments();
+            boolean refreshed = false;
+            for (Fragment fragment : fragments) {
+                if (fragment instanceof TodayFragment && fragment.isAdded()) {
+                    android.util.Log.d("MainActivity", "Refreshing TodayFragment instance: " + fragment.hashCode());
+                    ((TodayFragment) fragment).onRefresh();
+                    refreshed = true;
                 }
-                
-                // If not found, try to get from ViewPager2's internal fragment manager
-                // ViewPager2 uses a FragmentManager internally, we need to access it differently
-                // The best approach is to notify the adapter and let fragments refresh on resume
-                viewPager.post(() -> {
-                    // Force adapter to refresh current item
-                    pagerAdapter.notifyItemChanged(currentItem);
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+            
+            // If the current fragment wasn't in the fragment manager (unlikely with ViewPager2)
+            // or if we want to ensure the adapter is aware of changes
+            if (!refreshed && viewPager != null && pagerAdapter != null) {
+                android.util.Log.d("MainActivity", "No TodayFragment found to refresh, notifying adapter");
+                // Since we can't easily get the fragment from the adapter's implementation details 
+                // without internal hacks, we rely on the fragments having been found above.
+                // If they WEREN'T found, we fallback to notifyItemChanged but only as a last resort.
+                // However,fm.getFragments() usually finds them in ViewPager2.
+                pagerAdapter.notifyItemChanged(viewPager.getCurrentItem());
+            }
+        } catch (Exception e) {
+            android.util.Log.e("MainActivity", "Error in refreshTodayFragment", e);
         }
     }
 

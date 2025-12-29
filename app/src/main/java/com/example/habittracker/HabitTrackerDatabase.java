@@ -13,7 +13,7 @@ import java.util.List;
 
 public class HabitTrackerDatabase extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "habit_tracker.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     // Table names
     private static final String TABLE_USER_PROFILE = "user_profile";
@@ -27,7 +27,16 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
     private static final String TABLE_PHOTOS = "photos";
     private static final String TABLE_CATEGORIES = "categories";
 
-    public HabitTrackerDatabase(Context context) {
+    private static HabitTrackerDatabase instance;
+
+    public static synchronized HabitTrackerDatabase getInstance(Context context) {
+        if (instance == null) {
+            instance = new HabitTrackerDatabase(context.getApplicationContext());
+        }
+        return instance;
+    }
+
+    private HabitTrackerDatabase(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
@@ -166,6 +175,18 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_CATEGORIES);
             onCreate(db);
         }
+        
+        if (oldVersion < 3) {
+            // Add priority to todo_items if it doesn't exist
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_TODO_ITEMS + " ADD COLUMN priority INTEGER DEFAULT 0");
+            } catch (Exception ignored) {}
+            
+            // Add photo_path to journal_entries if it doesn't exist
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_JOURNAL_ENTRIES + " ADD COLUMN photo_path TEXT");
+            } catch (Exception ignored) {}
+        }
     }
 
     // User Profile methods
@@ -181,12 +202,16 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         values.put("birthdate", birthdate);
         values.put("updated_date", String.valueOf(System.currentTimeMillis()));
         
-        Cursor cursor = db.query(TABLE_USER_PROFILE, null, null, null, null, null, null);
-        if (cursor.getCount() > 0) {
-            cursor.close();
-            return db.update(TABLE_USER_PROFILE, values, "id = 1", null);
+        Cursor cursor = null;
+        try {
+            cursor = db.query(TABLE_USER_PROFILE, null, null, null, null, null, null);
+            if (cursor != null && cursor.getCount() > 0) {
+                return db.update(TABLE_USER_PROFILE, values, "id = 1", null);
+            }
+        } finally {
+            if (cursor != null) cursor.close();
         }
-        cursor.close();
+        
         values.put("created_date", String.valueOf(System.currentTimeMillis()));
         return db.insert(TABLE_USER_PROFILE, null, values);
     }
@@ -264,13 +289,16 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
 
     public boolean isHabitCompletedForDate(long habitId, String date) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_HABIT_ENTRIES, new String[]{"completed"}, "habit_id = ? AND date = ?", new String[]{String.valueOf(habitId), date}, null, null, null);
-        boolean completed = false;
-        if (cursor.moveToFirst()) {
-            completed = cursor.getInt(0) == 1;
+        Cursor cursor = null;
+        try {
+            cursor = db.query(TABLE_HABIT_ENTRIES, new String[]{"completed"}, "habit_id = ? AND date = ?", new String[]{String.valueOf(habitId), date}, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                return cursor.getInt(0) == 1;
+            }
+        } finally {
+            if (cursor != null) cursor.close();
         }
-        cursor.close();
-        return completed;
+        return false;
     }
 
     public int deleteHabit(long habitId) {
@@ -283,11 +311,17 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         List<Entry> entries = new ArrayList<>();
         String query = "SELECT strftime('%w', date) as day_of_week, COUNT(*) as count FROM " + TABLE_HABIT_ENTRIES + " WHERE date BETWEEN ? AND ? AND completed = 1 GROUP BY day_of_week ORDER BY day_of_week ASC";
-        Cursor cursor = db.rawQuery(query, new String[]{startDate, endDate});
-        while (cursor.moveToNext()) {
-            entries.add(new Entry(cursor.getInt(0), cursor.getInt(1)));
+        Cursor cursor = null;
+        try {
+            cursor = db.rawQuery(query, new String[]{startDate, endDate});
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    entries.add(new Entry(cursor.getInt(0), cursor.getInt(1)));
+                }
+            }
+        } finally {
+            if (cursor != null) cursor.close();
         }
-        cursor.close();
         return entries;
     }
 
@@ -295,11 +329,17 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         List<Entry> entries = new ArrayList<>();
         String query = "SELECT strftime('%H', time_of_day) as hour_of_day, COUNT(*) as count FROM " + TABLE_HABITS + " h JOIN " + TABLE_HABIT_ENTRIES + " he ON h.id = he.habit_id WHERE he.date = ? AND he.completed = 1 GROUP BY hour_of_day ORDER BY hour_of_day ASC";
-        Cursor cursor = db.rawQuery(query, new String[]{date});
-        while (cursor.moveToNext()) {
-            entries.add(new Entry(cursor.getInt(0), cursor.getInt(1)));
+        Cursor cursor = null;
+        try {
+            cursor = db.rawQuery(query, new String[]{date});
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    entries.add(new Entry(cursor.getInt(0), cursor.getInt(1)));
+                }
+            }
+        } finally {
+            if (cursor != null) cursor.close();
         }
-        cursor.close();
         return entries;
     }
 
@@ -307,11 +347,17 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         List<Entry> entries = new ArrayList<>();
         String query = "SELECT strftime('%d', date) as day_of_month, COUNT(*) as count FROM " + TABLE_HABIT_ENTRIES + " WHERE strftime('%Y', date) = ? AND strftime('%m', date) = ? AND completed = 1 GROUP BY day_of_month ORDER BY day_of_month ASC";
-        Cursor cursor = db.rawQuery(query, new String[]{year, month});
-        while (cursor.moveToNext()) {
-            entries.add(new Entry(cursor.getInt(0), cursor.getInt(1)));
+        Cursor cursor = null;
+        try {
+            cursor = db.rawQuery(query, new String[]{year, month});
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    entries.add(new Entry(cursor.getInt(0), cursor.getInt(1)));
+                }
+            }
+        } finally {
+            if (cursor != null) cursor.close();
         }
-        cursor.close();
         return entries;
     }
 
@@ -329,13 +375,16 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
     public String getAverageMood(String startDate, String endDate) {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT mood_type, COUNT(*) as count FROM " + TABLE_MOOD_ENTRIES + " WHERE date BETWEEN ? AND ? GROUP BY mood_type ORDER BY count DESC LIMIT 1";
-        Cursor cursor = db.rawQuery(query, new String[]{startDate, endDate});
-        String mood = "";
-        if (cursor.moveToFirst()) {
-            mood = cursor.getString(0);
+        Cursor cursor = null;
+        try {
+            cursor = db.rawQuery(query, new String[]{startDate, endDate});
+            if (cursor != null && cursor.moveToFirst()) {
+                return cursor.getString(0);
+            }
+        } finally {
+            if (cursor != null) cursor.close();
         }
-        cursor.close();
-        return mood;
+        return "";
     }
 
     // Other methods...
@@ -363,11 +412,12 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return db.update(TABLE_MOOD_ENTRIES, values, "date = ?", new String[]{date});
     }
 
-    public long insertJournalEntry(String date, String content) {
+    public long insertJournalEntry(String date, String content, String photoPath) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("date", date);
         values.put("content", content);
+        values.put("photo_path", photoPath);
         return db.insert(TABLE_JOURNAL_ENTRIES, null, values);
     }
 
@@ -376,10 +426,11 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return db.query(TABLE_JOURNAL_ENTRIES, null, "date = ?", new String[]{date}, null, null, null);
     }
 
-    public int updateJournalEntry(long id, String content) {
+    public int updateJournalEntry(long id, String content, String photoPath) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("content", content);
+        values.put("photo_path", photoPath);
         return db.update(TABLE_JOURNAL_ENTRIES, values, "id = ?", new String[]{String.valueOf(id)});
     }
 
@@ -403,11 +454,12 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return db.query(TABLE_TODO_ITEMS, null, "date = ?", new String[]{date}, null, null, "priority DESC");
     }
 
-    public int updateTodoItem(long id, String title, String description, boolean completed) {
+    public int updateTodoItem(long id, String title, String description, int priority, boolean completed) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("title", title);
         values.put("description", description);
+        values.put("priority", priority);
         values.put("completed", completed ? 1 : 0);
         return db.update(TABLE_TODO_ITEMS, values, "id = ?", new String[]{String.valueOf(id)});
     }
@@ -466,6 +518,14 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
     public Cursor getAlarmsForDate(String date) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query(TABLE_ALARMS, null, "date = ?", new String[]{date}, null, null, "time ASC");
+    }
+
+    public int updateAlarm(long id, String time, String title) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("time", time);
+        values.put("title", title);
+        return db.update(TABLE_ALARMS, values, "id = ?", new String[]{String.valueOf(id)});
     }
 
     public int deleteAlarm(long id) {

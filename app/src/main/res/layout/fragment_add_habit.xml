@@ -41,9 +41,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            app:cardBackgroundColor="?attr/colorSurface"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="2dp"
+            style="@style/Widget.App.MaterialCardView.TierC"
             app:layout_constraintTop_toBottomOf="@id/title_create_habit">
 
             <LinearLayout
@@ -138,9 +136,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            app:cardBackgroundColor="?attr/colorSurface"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="2dp"
+            style="@style/Widget.App.MaterialCardView.TierC"
             app:layout_constraintTop_toBottomOf="@id/card_basic_info">
 
             <LinearLayout
@@ -378,9 +374,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            app:cardBackgroundColor="?attr/colorSurface"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="2dp"
+            style="@style/Widget.App.MaterialCardView.TierC"
             app:layout_constraintTop_toBottomOf="@id/card_repeat">
 
             <LinearLayout
@@ -482,6 +476,55 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_additional_options"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            style="@style/Widget.App.MaterialCardView.TierC"
+            app:layout_constraintTop_toBottomOf="@id/card_options">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:text="Additional Settings"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <CheckBox
+                    android:id="@+id/check_notify_completion"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Notify on completion"
+                    android:textColor="?attr/colorOnSurface" />
+
+                <CheckBox
+                    android:id="@+id/check_show_in_widget"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Show in home screen widget"
+                    android:textColor="?attr/colorOnSurface" />
+
+                <CheckBox
+                    android:id="@+id/check_private_habit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Private habit (hide from summary)"
+                    android:textColor="?attr/colorOnSurface" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+
         <Button
             android:id="@+id/btn_save"
             android:layout_width="match_parent"
@@ -491,7 +534,7 @@
             android:text="@string/save"
             android:background="@drawable/rounded_button"
             android:textColor="@android:color/white"
-            app:layout_constraintTop_toBottomOf="@id/card_options" />
+            app:layout_constraintTop_toBottomOf="@id/card_additional_options" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

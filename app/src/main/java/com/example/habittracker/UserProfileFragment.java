@@ -14,6 +14,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.bumptech.glide.Glide;
+
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,7 +23,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.material.textfield.TextInputEditText;
+import android.widget.EditText;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,10 +36,10 @@ public class UserProfileFragment extends Fragment {
     private static final int REQUEST_IMAGE_PICK = 1;
     private static final int REQUEST_IMAGE_CAPTURE = 2;
 
-    private TextInputEditText editName;
-    private TextInputEditText editSurname;
-    private TextInputEditText editEmail;
-    private TextInputEditText editPhone;
+    private EditText editName;
+    private EditText editSurname;
+    private EditText editEmail;
+    private EditText editPhone;
     private ImageView profileImage;
     private Button btnSave;
     private TextView textGender;
@@ -58,7 +60,7 @@ public class UserProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        database = new HabitTrackerDatabase(requireContext());
+        database = HabitTrackerDatabase.getInstance(requireContext());
         editName = view.findViewById(R.id.edit_name);
         editSurname = view.findViewById(R.id.edit_surname);
         editEmail = view.findViewById(R.id.edit_email);
@@ -98,34 +100,55 @@ public class UserProfileFragment extends Fragment {
     }
 
     private void loadProfile() {
-        android.database.Cursor cursor = database.getUserProfile();
-        if (cursor.moveToFirst()) {
-            editName.setText(cursor.getString(cursor.getColumnIndexOrThrow("name")));
-            editSurname.setText(cursor.getString(cursor.getColumnIndexOrThrow("surname")));
-            editEmail.setText(cursor.getString(cursor.getColumnIndexOrThrow("email")));
-            editPhone.setText(cursor.getString(cursor.getColumnIndexOrThrow("phone")));
-            profileImagePath = cursor.getString(cursor.getColumnIndexOrThrow("profile_image_path"));
+        android.database.Cursor cursor = null;
+        try {
+            cursor = database.getUserProfile();
+            if (cursor != null && cursor.moveToFirst()) {
+                int nameIdx = cursor.getColumnIndex("name");
+                int surnameIdx = cursor.getColumnIndex("surname");
+                int emailIdx = cursor.getColumnIndex("email");
+                int phoneIdx = cursor.getColumnIndex("phone");
+                int pathIdx = cursor.getColumnIndex("profile_image_path");
+                int genderIdx = cursor.getColumnIndex("gender");
+                int birthIdx = cursor.getColumnIndex("birthdate");
 
-            String gender = cursor.getString(cursor.getColumnIndexOrThrow("gender"));
-            if (gender != null && !gender.isEmpty()) {
-                selectedGender = gender;
-                textGender.setText(gender);
-            }
+                if (nameIdx != -1) editName.setText(cursor.getString(nameIdx));
+                if (surnameIdx != -1) editSurname.setText(cursor.getString(surnameIdx));
+                if (emailIdx != -1) editEmail.setText(cursor.getString(emailIdx));
+                if (phoneIdx != -1) editPhone.setText(cursor.getString(phoneIdx));
+                if (pathIdx != -1) profileImagePath = cursor.getString(pathIdx);
 
-            String birthdate = cursor.getString(cursor.getColumnIndexOrThrow("birthdate"));
-            if (birthdate != null && !birthdate.isEmpty()) {
-                selectedBirthdate = birthdate;
-                textBirthdate.setText(birthdate);
-            }
+                if (genderIdx != -1) {
+                    String gender = cursor.getString(genderIdx);
+                    if (gender != null && !gender.isEmpty()) {
+                        selectedGender = gender;
+                        textGender.setText(gender);
+                    }
+                }
 
-            if (!TextUtils.isEmpty(profileImagePath)) {
-                File imageFile = new File(profileImagePath);
-                if (imageFile.exists()) {
-                    profileImage.setImageURI(Uri.fromFile(imageFile));
+                if (birthIdx != -1) {
+                    String birthdate = cursor.getString(birthIdx);
+                    if (birthdate != null && !birthdate.isEmpty()) {
+                        selectedBirthdate = birthdate;
+                        textBirthdate.setText(birthdate);
+                    }
+                }
+
+                if (!TextUtils.isEmpty(profileImagePath)) {
+                    File imageFile = new File(profileImagePath);
+                    if (imageFile.exists()) {
+                        Glide.with(this)
+                                .load(imageFile)
+                                .circleCrop()
+                                .into(profileImage);
+                    }
                 }
             }
+        } catch (Exception e) {
+            android.util.Log.e("UserProfileFragment", "Error loading profile", e);
+        } finally {
+            if (cursor != null) cursor.close();
         }
-        cursor.close();
     }
 
     private void showImagePickerOptions() {
@@ -233,7 +256,10 @@ public class UserProfileFragment extends Fragment {
                 saveImageToInternalStorage(imageUri);
             } else if (requestCode == REQUEST_IMAGE_CAPTURE) {
                 // The image is already saved to the path, just update the ImageView
-                profileImage.setImageURI(cameraImageUri);
+                Glide.with(this)
+                        .load(cameraImageUri)
+                        .circleCrop()
+                        .into(profileImage);
             }
         }
     }
@@ -251,7 +277,10 @@ public class UserProfileFragment extends Fragment {
             outputStream.close();
             inputStream.close();
             profileImagePath = file.getAbsolutePath();
-            profileImage.setImageURI(Uri.fromFile(file));
+            Glide.with(this)
+                    .load(file)
+                    .circleCrop()
+                    .into(profileImage);
         } catch (java.io.IOException e) {
             e.printStackTrace();
             Toast.makeText(requireContext(), "Failed to save image", Toast.LENGTH_SHORT).show();

@@ -15,8 +15,9 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="20dp"
-            android:paddingTop="32dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="8dp"
             android:paddingBottom="32dp">
 
             <ImageButton
@@ -50,16 +51,17 @@
                 android:fontFamily="sans-serif-medium"
                 android:textStyle="normal"
                 android:textColor="?attr/colorOnBackground"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="8dp"
                 android:letterSpacing="0.01"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/menu_button" />
+                app:layout_constraintTop_toBottomOf="@id/menu_button"
+                android:layout_marginStart="12dp" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/weekly_recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:nestedScrollingEnabled="false"
                 app:layout_constraintTop_toBottomOf="@id/week_title" />
 
