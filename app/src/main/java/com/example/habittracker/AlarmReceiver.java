@@ -13,11 +13,12 @@ import androidx.core.app.NotificationCompat;
 public class AlarmReceiver extends BroadcastReceiver {
     private static final String CHANNEL_ID = "alarm_channel";
     private static final String CHANNEL_NAME = "Alarm Notifications";
+    private static boolean channelCreated = false;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         String title = intent.getStringExtra("title");
-        if (title == null) {
+        if (title == null || title.isEmpty()) {
             title = "Alarm";
         }
 
@@ -49,7 +50,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     }
 
     private void createNotificationChannel(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !channelCreated) {
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
                     CHANNEL_NAME,
@@ -58,10 +59,13 @@ public class AlarmReceiver extends BroadcastReceiver {
             channel.setDescription("Alarm notifications");
             channel.enableVibration(true);
             channel.enableLights(true);
+            channel.setSound(android.provider.Settings.System.DEFAULT_NOTIFICATION_URI, null);
+            channel.setShowBadge(true);
 
             NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
             if (notificationManager != null) {
                 notificationManager.createNotificationChannel(channel);
+                channelCreated = true;
             }
         }
     }

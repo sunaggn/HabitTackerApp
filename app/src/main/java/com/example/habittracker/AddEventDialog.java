@@ -141,9 +141,15 @@ public class AddEventDialog extends DialogFragment {
                 if (eventItem != null) {
                     database.updateEvent(eventItem.id, title, description, selectedTime);
                     Toast.makeText(requireContext(), "Event updated", Toast.LENGTH_SHORT).show();
+                    
+                    // Update widget
+                    HabitTrackerWidget.updateAllWidgets(requireContext());
                 } else {
                     database.insertEvent(selectedDate, title, description, selectedTime, alarmSet);
                     Toast.makeText(requireContext(), "Event added", Toast.LENGTH_SHORT).show();
+                    
+                    // Update widget
+                    HabitTrackerWidget.updateAllWidgets(requireContext());
                 }
 
                 if (refreshListener != null) {

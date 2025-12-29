@@ -34,4 +34,5 @@
     <string name="edit_event">Edit Event</string>
     <string name="event_updated">Event updated</string>
     <string name="event_added">Event added</string>
+    <string name="widget_description">View today\'s habits, todos, and events</string>
 </resources>

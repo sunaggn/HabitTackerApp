@@ -40,7 +40,6 @@ public class AddHabitFragment extends Fragment {
     private Switch switchEndDate;
     private Switch switchReminder;
     private TextView textEndDate;
-    private CheckBox checkNotifyCompletion, checkShowInWidget, checkPrivateHabit;
     private Button btnSave;
     private HabitTrackerDatabase database;
 
@@ -113,9 +112,6 @@ public class AddHabitFragment extends Fragment {
         switchEndDate = view.findViewById(R.id.switch_end_date);
         switchReminder = view.findViewById(R.id.switch_reminder);
         textEndDate = view.findViewById(R.id.text_end_date);
-        checkNotifyCompletion = view.findViewById(R.id.check_notify_completion);
-        checkShowInWidget = view.findViewById(R.id.check_show_in_widget);
-        checkPrivateHabit = view.findViewById(R.id.check_private_habit);
         btnSave = view.findViewById(R.id.btn_save);
         view.findViewById(R.id.btn_back).setOnClickListener(v -> getParentFragmentManager().popBackStack());
     }
@@ -236,10 +232,16 @@ public class AddHabitFragment extends Fragment {
                 database.insertHabit(habitName, "Custom", selectedColor, selectedIcon,
                         repeatType, daysOfWeek, "", endDate, reminderEnabled);
                 Toast.makeText(requireContext(), "Habit added", Toast.LENGTH_SHORT).show();
+                
+                // Update widget
+                HabitTrackerWidget.updateAllWidgets(requireContext());
             } else {
                 database.updateHabit(habitId, habitName, "Custom", selectedColor, selectedIcon,
                         repeatType, daysOfWeek, "", endDate, reminderEnabled);
                 Toast.makeText(requireContext(), "Habit updated", Toast.LENGTH_SHORT).show();
+                
+                // Update widget
+                HabitTrackerWidget.updateAllWidgets(requireContext());
             }
 
             if (getActivity() instanceof MainActivity) {

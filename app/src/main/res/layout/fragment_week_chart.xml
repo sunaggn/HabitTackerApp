@@ -3,14 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:padding="16dp"
     android:background="?android:attr/colorBackground">
 
-    <include layout="@layout/layout_activity_header" />
-
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/week_view_pager"
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/weeklyChart"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_height="match_parent" />
 
 </LinearLayout>
+

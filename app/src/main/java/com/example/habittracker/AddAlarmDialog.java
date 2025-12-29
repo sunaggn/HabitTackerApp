@@ -2,7 +2,6 @@ package com.example.habittracker;
 
 import android.app.AlarmManager;
 import android.app.Dialog;
-import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -20,11 +19,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.Objects;
 
 public class AddAlarmDialog extends DialogFragment {
     private String date;
@@ -99,22 +95,23 @@ public class AddAlarmDialog extends DialogFragment {
                 if (checkPermissions()) {
                     long alarmId;
                     if (alarmItem != null) {
-                        database.updateAlarm(alarmItem.id, selectedTime, title);
+                        // Update alarm in database (including date if changed)
+                        database.updateAlarm(alarmItem.id, date, selectedTime, title);
                         alarmId = alarmItem.id;
-                        // Cancel old alarm before scheduling new one (optional but good practice)
-                        // We rely on scheduleAlarm to overwrite if ID is same, or we just update DB
+                        // Cancel old alarm before scheduling new one
+                        AlarmHelper.cancelAlarm(requireContext(), alarmItem.id);
                     } else {
                         alarmId = database.insertAlarm(date, selectedTime, title);
                     }
-
-                    if (scheduleAlarm(alarmId, date, selectedTime, title)) {
+                    
+                    if (AlarmHelper.scheduleAlarm(requireContext(), alarmId, date, selectedTime, title)) {
                         String msg = alarmItem != null ? "Alarm updated" : "Alarm added";
                         Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
                         if (refreshListener != null) {
                             refreshListener.onRefresh();
                         }
                     } else {
-                        Toast.makeText(requireContext(), "Alarm saved but could not schedule", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Alarm saved but could not schedule. Please check permissions in settings.", Toast.LENGTH_LONG).show();
                     }
                 } else {
                     Toast.makeText(requireContext(), "Please grant notification permission in settings", Toast.LENGTH_LONG).show();
@@ -163,59 +160,5 @@ public class AddAlarmDialog extends DialogFragment {
         }
         
         return true;
-    }
-
-    private boolean scheduleAlarm(long alarmId, String date, String time, String title) {
-        try {
-            Context context = requireContext();
-            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-            if (alarmManager == null) {
-                return false;
-            }
-
-            // Parse date and time
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-            Calendar alarmCalendar = Calendar.getInstance();
-            alarmCalendar.setTime(Objects.requireNonNull(dateFormat.parse(date)));
-
-            String[] timeParts = time.split(":");
-            int hour = Integer.parseInt(timeParts[0]);
-            int minute = Integer.parseInt(timeParts[1]);
-            alarmCalendar.set(Calendar.HOUR_OF_DAY, hour);
-            alarmCalendar.set(Calendar.MINUTE, minute);
-            alarmCalendar.set(Calendar.SECOND, 0);
-            alarmCalendar.set(Calendar.MILLISECOND, 0);
-
-            // If the alarm time has passed today, set it for tomorrow
-            if (alarmCalendar.getTimeInMillis() <= System.currentTimeMillis()) {
-                alarmCalendar.add(Calendar.DAY_OF_YEAR, 1);
-            }
-
-            // Create intent for AlarmReceiver
-            Intent intent = new Intent(context, AlarmReceiver.class);
-            intent.putExtra("alarmId", alarmId);
-            intent.putExtra("title", title);
-            intent.putExtra("date", date);
-            intent.putExtra("time", time);
-
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                    context,
-                    (int) alarmId,
-                    intent,
-                    PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
-            );
-
-            // Schedule alarm
-            alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    alarmCalendar.getTimeInMillis(),
-                    pendingIntent
-            );
-
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
     }
 }

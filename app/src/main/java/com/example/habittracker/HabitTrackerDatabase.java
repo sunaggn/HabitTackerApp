@@ -8,12 +8,15 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.github.mikephil.charting.data.Entry;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class HabitTrackerDatabase extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "habit_tracker.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 
     // Table names
     private static final String TABLE_USER_PROFILE = "user_profile";
@@ -112,7 +115,8 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
                 "title TEXT, " +
                 "description TEXT, " +
                 "completed INTEGER DEFAULT 0, " +
-                "priority INTEGER DEFAULT 0" +
+                "priority INTEGER DEFAULT 0, " +
+                "display_order INTEGER DEFAULT 0" +
                 ")");
 
         // Events table
@@ -185,6 +189,15 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
             // Add photo_path to journal_entries if it doesn't exist
             try {
                 db.execSQL("ALTER TABLE " + TABLE_JOURNAL_ENTRIES + " ADD COLUMN photo_path TEXT");
+            } catch (Exception ignored) {}
+        }
+        
+        if (oldVersion < 4) {
+            // Add display_order to todo_items for drag-and-drop reordering
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_TODO_ITEMS + " ADD COLUMN display_order INTEGER DEFAULT 0");
+                // Initialize display_order with id values for existing todos
+                db.execSQL("UPDATE " + TABLE_TODO_ITEMS + " SET display_order = id WHERE display_order = 0");
             } catch (Exception ignored) {}
         }
     }
@@ -325,6 +338,46 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return entries;
     }
 
+    /**
+     * Get habit completion counts for each day of a week
+     * Returns a list with 7 entries (one for each day of the week, Monday=0 to Sunday=6)
+     */
+    public int[] getHabitCountsForWeek(String startDate, String endDate) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        int[] counts = new int[7]; // Initialize with zeros
+        
+        // Get all completed habits in the date range
+        String query = "SELECT date, COUNT(*) as count FROM " + TABLE_HABIT_ENTRIES + 
+                       " WHERE date BETWEEN ? AND ? AND completed = 1 GROUP BY date";
+        Cursor cursor = null;
+        try {
+            cursor = db.rawQuery(query, new String[]{startDate, endDate});
+            if (cursor != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.ENGLISH);
+                while (cursor.moveToNext()) {
+                    String dateStr = cursor.getString(0);
+                    int count = cursor.getInt(1);
+                    
+                    try {
+                        Calendar cal = Calendar.getInstance();
+                        cal.setTime(sdf.parse(dateStr));
+                        int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
+                        // Convert to Monday=0, Tuesday=1, ..., Sunday=6
+                        int index = (dayOfWeek == Calendar.SUNDAY) ? 6 : dayOfWeek - Calendar.MONDAY;
+                        if (index >= 0 && index < 7) {
+                            counts[index] = count;
+                        }
+                    } catch (Exception e) {
+                        // Skip invalid dates
+                    }
+                }
+            }
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        return counts;
+    }
+
     public List<Entry> getDailyHabitSummary(String date) {
         SQLiteDatabase db = this.getReadableDatabase();
         List<Entry> entries = new ArrayList<>();
@@ -441,17 +494,35 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
 
     public long insertTodoItem(String date, String title, String description, int priority) {
         SQLiteDatabase db = this.getWritableDatabase();
+        
+        // Get max display_order for this date to append at the end
+        Cursor cursor = null;
+        int maxOrder = 0;
+        try {
+            cursor = db.query(TABLE_TODO_ITEMS, new String[]{"MAX(display_order) as max_order"}, 
+                    "date = ? AND completed = 0", new String[]{date}, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int maxOrderIdx = cursor.getColumnIndex("max_order");
+                if (maxOrderIdx != -1 && !cursor.isNull(maxOrderIdx)) {
+                    maxOrder = cursor.getInt(maxOrderIdx);
+                }
+            }
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        
         ContentValues values = new ContentValues();
         values.put("date", date);
         values.put("title", title);
         values.put("description", description);
         values.put("priority", priority);
+        values.put("display_order", maxOrder + 1);
         return db.insert(TABLE_TODO_ITEMS, null, values);
     }
 
     public Cursor getTodosForDate(String date) {
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.query(TABLE_TODO_ITEMS, null, "date = ?", new String[]{date}, null, null, "priority DESC");
+        return db.query(TABLE_TODO_ITEMS, null, "date = ?", new String[]{date}, null, null, "display_order ASC, priority DESC");
     }
 
     public int updateTodoItem(long id, String title, String description, int priority, boolean completed) {
@@ -462,6 +533,21 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         values.put("priority", priority);
         values.put("completed", completed ? 1 : 0);
         return db.update(TABLE_TODO_ITEMS, values, "id = ?", new String[]{String.valueOf(id)});
+    }
+
+    public void updateTodoOrder(List<Long> todoIds) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+        try {
+            for (int i = 0; i < todoIds.size(); i++) {
+                ContentValues values = new ContentValues();
+                values.put("display_order", i);
+                db.update(TABLE_TODO_ITEMS, values, "id = ?", new String[]{String.valueOf(todoIds.get(i))});
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
     }
 
     public int deleteTodoItem(long id) {
@@ -520,11 +606,31 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         return db.query(TABLE_ALARMS, null, "date = ?", new String[]{date}, null, null, "time ASC");
     }
 
+    public Cursor getAllAlarms() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.query(TABLE_ALARMS, null, null, null, null, null, "date ASC, time ASC");
+    }
+
     public int updateAlarm(long id, String time, String title) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("time", time);
         values.put("title", title);
+        return db.update(TABLE_ALARMS, values, "id = ?", new String[]{String.valueOf(id)});
+    }
+
+    public int updateAlarm(long id, String date, String time, String title) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        if (date != null) {
+            values.put("date", date);
+        }
+        if (time != null) {
+            values.put("time", time);
+        }
+        if (title != null) {
+            values.put("title", title);
+        }
         return db.update(TABLE_ALARMS, values, "id = ?", new String[]{String.valueOf(id)});
     }
 

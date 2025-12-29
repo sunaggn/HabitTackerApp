@@ -19,6 +19,8 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.bumptech.glide.Glide;
+import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.navigation.NavigationView;
 
 import java.text.SimpleDateFormat;
@@ -62,6 +64,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         database = HabitTrackerDatabase.getInstance(this);
         
+        // Reschedule all alarms when app starts (in case device was rebooted)
+        AlarmHelper.rescheduleAllAlarms(this);
+        
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
         viewPager = findViewById(R.id.view_pager);
@@ -97,20 +102,44 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 if (headerView != null) {
                     TextView userName = headerView.findViewById(R.id.nav_user_name);
                     TextView userEmail = headerView.findViewById(R.id.nav_user_email);
+                    ShapeableImageView profileImage = headerView.findViewById(R.id.nav_profile_image);
                     
                     int nameIdx = cursor.getColumnIndex("name");
                     int surnameIdx = cursor.getColumnIndex("surname");
                     int emailIdx = cursor.getColumnIndex("email");
+                    int pathIdx = cursor.getColumnIndex("profile_image_path");
                     
                     String name = nameIdx != -1 ? cursor.getString(nameIdx) : null;
                     String surname = surnameIdx != -1 ? cursor.getString(surnameIdx) : null;
                     String email = emailIdx != -1 ? cursor.getString(emailIdx) : null;
+                    String profileImagePath = pathIdx != -1 ? cursor.getString(pathIdx) : null;
                     
                     if (name != null && surname != null) {
                         userName.setText(name + " " + surname);
                     }
                     if (email != null) {
                         userEmail.setText(email);
+                    }
+                    
+                    // Load profile image if exists
+                    if (profileImage != null) {
+                        if (profileImagePath != null && !profileImagePath.isEmpty()) {
+                            java.io.File imageFile = new java.io.File(profileImagePath);
+                            if (imageFile.exists()) {
+                                Glide.with(this)
+                                        .load(imageFile)
+                                        .circleCrop()
+                                        .placeholder(android.R.drawable.ic_menu_myplaces)
+                                        .error(android.R.drawable.ic_menu_myplaces)
+                                        .into(profileImage);
+                            } else {
+                                // File doesn't exist, show default icon
+                                profileImage.setImageResource(android.R.drawable.ic_menu_myplaces);
+                            }
+                        } else {
+                            // No profile image path, show default icon
+                            profileImage.setImageResource(android.R.drawable.ic_menu_myplaces);
+                        }
                     }
                 }
             }

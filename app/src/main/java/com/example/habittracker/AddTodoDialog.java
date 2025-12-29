@@ -84,6 +84,9 @@ public class AddTodoDialog extends DialogFragment {
 
                 database.updateTodoItem(todoItem.id, title, description, priority, todoItem.completed);
                 Toast.makeText(getContext(), "To-Do updated", Toast.LENGTH_SHORT).show();
+                
+                // Update widget
+                HabitTrackerWidget.updateAllWidgets(getContext());
             } else {
                 // Add new item
                 int priority = 0;
@@ -93,6 +96,9 @@ public class AddTodoDialog extends DialogFragment {
 
                 database.insertTodoItem(date, title, description, priority);
                 Toast.makeText(getContext(), "To-Do added", Toast.LENGTH_SHORT).show();
+                
+                // Update widget
+                HabitTrackerWidget.updateAllWidgets(getContext());
             }
 
             if (refreshListener != null) {

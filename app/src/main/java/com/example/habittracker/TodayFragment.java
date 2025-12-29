@@ -26,6 +26,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -37,6 +38,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -325,6 +327,85 @@ public class TodayFragment extends Fragment implements RefreshListener {
     private void setupTodosList() {
         todosRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         loadTodos();
+        
+        // Setup drag and drop for todos
+        ItemTouchHelper.Callback callback = new ItemTouchHelper.SimpleCallback(
+                ItemTouchHelper.UP | ItemTouchHelper.DOWN,
+                0
+        ) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                int fromPos = viewHolder.getAdapterPosition();
+                int toPos = target.getAdapterPosition();
+                
+                if (fromPos == RecyclerView.NO_POSITION || toPos == RecyclerView.NO_POSITION) {
+                    return false;
+                }
+                
+                TodoAdapter adapter = (TodoAdapter) recyclerView.getAdapter();
+                if (adapter != null && adapter.todos != null) {
+                    // Move item in list
+                    if (fromPos < toPos) {
+                        // Moving down
+                        for (int i = fromPos; i < toPos; i++) {
+                            java.util.Collections.swap(adapter.todos, i, i + 1);
+                        }
+                    } else {
+                        // Moving up
+                        for (int i = fromPos; i > toPos; i--) {
+                            java.util.Collections.swap(adapter.todos, i, i - 1);
+                        }
+                    }
+                    
+                    adapter.notifyItemMoved(fromPos, toPos);
+                    
+                    // Update order in database
+                    List<Long> todoIds = new ArrayList<>();
+                    for (TodoItem todo : adapter.todos) {
+                        todoIds.add(todo.id);
+                    }
+                    database.updateTodoOrder(todoIds);
+                    
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                // Not used for drag and drop
+            }
+
+            @Override
+            public boolean isLongPressDragEnabled() {
+                return true; // Enable long press to start dragging
+            }
+
+            @Override
+            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+                super.onSelectedChanged(viewHolder, actionState);
+                if (actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
+                    // Change appearance when dragging starts
+                    if (viewHolder != null) {
+                        viewHolder.itemView.setAlpha(0.7f);
+                        viewHolder.itemView.setScaleX(1.05f);
+                        viewHolder.itemView.setScaleY(1.05f);
+                    }
+                }
+            }
+
+            @Override
+            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                super.clearView(recyclerView, viewHolder);
+                // Restore appearance when dragging ends
+                viewHolder.itemView.setAlpha(1.0f);
+                viewHolder.itemView.setScaleX(1.0f);
+                viewHolder.itemView.setScaleY(1.0f);
+            }
+        };
+        
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(todosRecyclerView);
     }
 
     private void setupEventsList() {
@@ -352,22 +433,7 @@ public class TodayFragment extends Fragment implements RefreshListener {
     }
 
     private void cancelAlarm(long alarmId) {
-        try {
-            android.app.AlarmManager alarmManager = (android.app.AlarmManager) requireContext().getSystemService(android.content.Context.ALARM_SERVICE);
-            if (alarmManager != null) {
-                android.content.Intent intent = new android.content.Intent(requireContext(), AlarmReceiver.class);
-                android.app.PendingIntent pendingIntent = android.app.PendingIntent.getBroadcast(
-                        requireContext(),
-                        (int) alarmId,
-                        intent,
-                        android.app.PendingIntent.FLAG_IMMUTABLE | android.app.PendingIntent.FLAG_UPDATE_CURRENT
-                );
-                alarmManager.cancel(pendingIntent);
-                pendingIntent.cancel();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        AlarmHelper.cancelAlarm(requireContext(), alarmId);
     }
 
     private void setupPhotoCard() {
@@ -457,6 +523,18 @@ public class TodayFragment extends Fragment implements RefreshListener {
             List<HabitItem> habits = new ArrayList<>();
             java.util.Set<Long> seenHabitIds = new java.util.HashSet<>();
 
+            // Get current day of week (0=Sunday, 1=Monday, ..., 6=Saturday)
+            Calendar calendar = Calendar.getInstance();
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+                calendar.setTime(sdf.parse(currentDate));
+            } catch (Exception e) {
+                calendar = Calendar.getInstance();
+            }
+            int currentDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+            // Convert to our format: 0=Sunday, 1=Monday, ..., 6=Saturday
+            int dayIndex = (currentDayOfWeek == Calendar.SUNDAY) ? 0 : currentDayOfWeek - 1;
+
             if (cursor != null) {
                 while (cursor.moveToNext()) {
                     int idIdx = cursor.getColumnIndex("id");
@@ -464,6 +542,8 @@ public class TodayFragment extends Fragment implements RefreshListener {
                     int catIdx = cursor.getColumnIndex("category");
                     int iconIdx = cursor.getColumnIndex("icon");
                     int compIdx = cursor.getColumnIndex("completed");
+                    int repeatTypeIdx = cursor.getColumnIndex("repeat_type");
+                    int daysOfWeekIdx = cursor.getColumnIndex("days_of_week");
 
                     if (idIdx == -1 || nameIdx == -1) continue;
 
@@ -473,6 +553,21 @@ public class TodayFragment extends Fragment implements RefreshListener {
                         continue;
                     }
                     seenHabitIds.add(habitId);
+
+                    // Check if habit should be shown today based on repeat type and days
+                    String repeatType = repeatTypeIdx != -1 ? cursor.getString(repeatTypeIdx) : "Daily";
+                    String daysOfWeek = daysOfWeekIdx != -1 ? cursor.getString(daysOfWeekIdx) : "";
+                    
+                    // For Weekly habits, check if today is in the selected days
+                    if ("Weekly".equals(repeatType) && daysOfWeek != null && !daysOfWeek.isEmpty()) {
+                        List<String> selectedDays = Arrays.asList(daysOfWeek.split(","));
+                        if (!selectedDays.contains(String.valueOf(dayIndex))) {
+                            // Today is not in the selected days, skip this habit
+                            continue;
+                        }
+                    }
+                    // For Daily habits, always show
+                    // For Monthly habits, always show (can be enhanced later)
 
                     String name = cursor.getString(nameIdx);
                     String category = catIdx != -1 ? cursor.getString(catIdx) : "Custom";
@@ -997,6 +1092,9 @@ public class TodayFragment extends Fragment implements RefreshListener {
             holder.todoCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (isChecked) {
                     database.updateTodoCompletion(todo.id, true);
+                    
+                    // Update widget
+                    HabitTrackerWidget.updateAllWidgets(requireContext());
 
                     int pos = holder.getAdapterPosition();
                     if (pos != RecyclerView.NO_POSITION) {
@@ -1020,6 +1118,10 @@ public class TodayFragment extends Fragment implements RefreshListener {
                             break;
                         case 1: // Delete
                             database.deleteTodoItem(todo.id);
+                            
+                            // Update widget
+                            HabitTrackerWidget.updateAllWidgets(requireContext());
+                            
                             loadTodos();
                             break;
                     }
@@ -1081,6 +1183,10 @@ public class TodayFragment extends Fragment implements RefreshListener {
                             break;
                         case 1: // Delete
                             database.deleteEvent(event.id);
+                            
+                            // Update widget
+                            HabitTrackerWidget.updateAllWidgets(requireContext());
+                            
                             loadEvents();
                             break;
                     }

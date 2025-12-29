@@ -20,6 +20,7 @@ import com.bumptech.glide.Glide;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 
@@ -30,11 +31,13 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class UserProfileFragment extends Fragment {
     private static final int REQUEST_IMAGE_PICK = 1;
     private static final int REQUEST_IMAGE_CAPTURE = 2;
+    private static final int REQUEST_CAMERA_PERMISSION = 100;
 
     private EditText editName;
     private EditText editSurname;
@@ -157,7 +160,7 @@ public class UserProfileFragment extends Fragment {
                 .setTitle("Profil Fotoğrafı Seç")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {
-                        openCamera();
+                        checkCameraPermissionAndOpen();
                     } else {
                         openGallery();
                     }
@@ -165,21 +168,70 @@ public class UserProfileFragment extends Fragment {
                 .show();
     }
 
-    private void openCamera() {
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        File photoFile = null;
-        try {
-            photoFile = createImageFile();
-        } catch (java.io.IOException ex) {
-            // Error occurred while creating the File
-            Toast.makeText(requireContext(), "Error creating image file", Toast.LENGTH_SHORT).show();
+    private void checkCameraPermissionAndOpen() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.CAMERA)
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+                return;
+            }
         }
-        if (photoFile != null) {
-            cameraImageUri = FileProvider.getUriForFile(requireContext(),
-                    "com.example.habittracker.fileprovider",
-                    photoFile);
+        openCamera();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                openCamera();
+            } else {
+                Toast.makeText(requireContext(), "Kamera izni gerekli", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void openCamera() {
+        try {
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (java.io.IOException ex) {
+                Toast.makeText(requireContext(), "Error creating image file", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            if (photoFile == null) {
+                Toast.makeText(requireContext(), "Fotoğraf dosyası oluşturulamadı", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            cameraImageUri = FileProvider.getUriForFile(
+                    requireContext(),
+                    requireContext().getPackageName() + ".fileprovider",
+                    photoFile
+            );
+
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri);
-            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            // Grant permissions to camera apps
+            List<android.content.pm.ResolveInfo> cameraActivities = requireContext().getPackageManager()
+                    .queryIntentActivities(intent, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY);
+            for (android.content.pm.ResolveInfo activity : cameraActivities) {
+                requireContext().grantUriPermission(activity.activityInfo.packageName, cameraImageUri,
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            }
+
+            if (intent.resolveActivity(requireContext().getPackageManager()) != null) {
+                startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+            } else {
+                Toast.makeText(requireContext(), "Kamera uygulaması bulunamadı", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            android.util.Log.e("UserProfileFragment", "Error opening camera", e);
+            Toast.makeText(requireContext(), "Kamera açılamadı: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -256,10 +308,20 @@ public class UserProfileFragment extends Fragment {
                 saveImageToInternalStorage(imageUri);
             } else if (requestCode == REQUEST_IMAGE_CAPTURE) {
                 // The image is already saved to the path, just update the ImageView
-                Glide.with(this)
-                        .load(cameraImageUri)
-                        .circleCrop()
-                        .into(profileImage);
+                if (cameraImageUri != null) {
+                    Glide.with(this)
+                            .load(cameraImageUri)
+                            .circleCrop()
+                            .into(profileImage);
+                } else if (!profileImagePath.isEmpty()) {
+                    File imageFile = new File(profileImagePath);
+                    if (imageFile.exists()) {
+                        Glide.with(this)
+                                .load(imageFile)
+                                .circleCrop()
+                                .into(profileImage);
+                    }
+                }
             }
         }
     }

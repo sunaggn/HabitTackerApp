@@ -15,15 +15,12 @@ import androidx.fragment.app.Fragment;
 import android.content.SharedPreferences;
 import android.widget.ImageButton;
 
-import com.google.android.material.switchmaterial.SwitchMaterial;
-
 import java.io.File;
 import java.util.Locale;
 
 public class SettingsFragment extends Fragment {
 
     private TextView textMode;
-    private SwitchMaterial switchEmailNotifications;
 
     private SharedPreferences preferences;
     private HabitTrackerDatabase database;
@@ -50,7 +47,6 @@ public class SettingsFragment extends Fragment {
         database = HabitTrackerDatabase.getInstance(requireContext());
 
         textMode = view.findViewById(R.id.text_mode);
-        switchEmailNotifications = view.findViewById(R.id.switch_email_notifications);
 
         ImageButton btnBack = view.findViewById(R.id.btn_back);
         btnBack.setOnClickListener(v -> {
@@ -68,10 +64,6 @@ public class SettingsFragment extends Fragment {
         // Theme
         String currentMode = preferences.getString("theme_mode", "Light");
         textMode.setText(currentMode);
-
-        // Email notifications
-        boolean emailEnabled = preferences.getBoolean("email_notifications", false);
-        switchEmailNotifications.setChecked(emailEnabled);
     }
 
     // CLICK LISTENERS
@@ -85,20 +77,6 @@ public class SettingsFragment extends Fragment {
 
         view.findViewById(R.id.layout_restart_habits)
                 .setOnClickListener(v -> showRestartHabitsDialog());
-
-        switchEmailNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            preferences.edit()
-                    .putBoolean("email_notifications", isChecked)
-                    .apply();
-
-            Toast.makeText(
-                    requireContext(),
-                    isChecked
-                            ? "Email notifications enabled"
-                            : "Email notifications disabled",
-                    Toast.LENGTH_SHORT
-            ).show();
-        });
     }
 
     // THEME PICKER

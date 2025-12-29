@@ -31,13 +31,12 @@
     </RelativeLayout>
 
     <TextView
+        android:id="@+id/week_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="This week"
         android:textAppearance="@style/TextAppearance.App.SectionTitle"
         android:textColor="?attr/colorOnBackground" />
-
-    <include layout="@layout/layout_weekly_day_selector" />
 
 </LinearLayout>
