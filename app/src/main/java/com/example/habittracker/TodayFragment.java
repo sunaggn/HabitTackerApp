@@ -1059,7 +1059,7 @@ public class TodayFragment extends Fragment implements RefreshListener {
                         return;
                     }
 
-                    long insertResult = database.insertHabitEntry(habit.id, currentDate, isChecked);
+                    long insertResult = database.upsertHabitEntry(habit.id, currentDate, isChecked);
                     if (insertResult == -1) {
                         // DB rejected (likely past date), revert UI
                         buttonView.setOnCheckedChangeListener(null);

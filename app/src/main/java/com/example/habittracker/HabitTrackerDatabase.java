@@ -16,7 +16,7 @@ import java.util.Locale;
 
 public class HabitTrackerDatabase extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "habit_tracker.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
 
     // Table names
     private static final String TABLE_USER_PROFILE = "user_profile";
@@ -90,6 +90,7 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
                 "completed INTEGER DEFAULT 0, " +
                 "FOREIGN KEY(habit_id) REFERENCES " + TABLE_HABITS + "(id)" +
                 ")");
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS idx_habit_entries_unique ON " + TABLE_HABIT_ENTRIES + " (habit_id, date)");
 
         // Mood Entries table
         db.execSQL("CREATE TABLE " + TABLE_MOOD_ENTRIES + " (" +
@@ -200,6 +201,15 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
                 db.execSQL("UPDATE " + TABLE_TODO_ITEMS + " SET display_order = id WHERE display_order = 0");
             } catch (Exception ignored) {}
         }
+
+        if (oldVersion < 5) {
+            try {
+                // Remove duplicates before creating unique index
+                db.execSQL("DELETE FROM " + TABLE_HABIT_ENTRIES + " WHERE rowid NOT IN (" +
+                        "SELECT MIN(rowid) FROM " + TABLE_HABIT_ENTRIES + " GROUP BY habit_id, date)");
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS idx_habit_entries_unique ON " + TABLE_HABIT_ENTRIES + " (habit_id, date)");
+            } catch (Exception ignored) {}
+        }
     }
 
     // User Profile methods
@@ -298,7 +308,32 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
         values.put("habit_id", habitId);
         values.put("date", date);
         values.put("completed", completed ? 1 : 0);
-        return db.insert(TABLE_HABIT_ENTRIES, null, values);
+        return db.insertWithOnConflict(TABLE_HABIT_ENTRIES, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
+    /**
+     * Update if exists, else insert (with conflict replace on unique index)
+     */
+    public long upsertHabitEntry(long habitId, String date, boolean completed) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        // Prevent adding entries before the habit was created
+        long createdDate = getHabitCreatedDate(db, habitId);
+        if (createdDate > 0) {
+            long entryDayStart = parseDateToStartOfDay(date);
+            if (entryDayStart > 0 && entryDayStart < startOfDay(createdDate)) {
+                return -1;
+            }
+        }
+
+        ContentValues values = new ContentValues();
+        values.put("completed", completed ? 1 : 0);
+        int updated = db.update(TABLE_HABIT_ENTRIES, values, "habit_id = ? AND date = ?", new String[]{String.valueOf(habitId), date});
+        if (updated > 0) {
+            return updated;
+        }
+        values.put("habit_id", habitId);
+        values.put("date", date);
+        return db.insertWithOnConflict(TABLE_HABIT_ENTRIES, null, values, SQLiteDatabase.CONFLICT_REPLACE);
     }
 
     public int updateHabitEntry(long habitId, String date, boolean completed) {
@@ -412,7 +447,7 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
 
     private long parseCreatedDateValue(String raw) {
         if (raw == null || raw.isEmpty()) {
-            return startOfDay(System.currentTimeMillis());
+            return -1; // allow if unknown
         }
         try {
             return Long.parseLong(raw);
@@ -421,7 +456,7 @@ public class HabitTrackerDatabase extends SQLiteOpenHelper {
             if (fromDateString > 0) {
                 return fromDateString;
             }
-            return startOfDay(System.currentTimeMillis());
+            return -1; // allow if unparsable
         }
     }
 

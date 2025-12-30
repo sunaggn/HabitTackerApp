@@ -65,13 +65,15 @@ public class HabitsListFragment extends Fragment {
                     int idIdx = cursor.getColumnIndex("id");
                     int nameIdx = cursor.getColumnIndex("name");
                     int catIdx = cursor.getColumnIndex("category");
+                    int iconIdx = cursor.getColumnIndex("icon");
                     
                     if (idIdx == -1 || nameIdx == -1) continue;
                     
                     long id = cursor.getLong(idIdx);
                     String name = cursor.getString(nameIdx);
                     String category = catIdx != -1 ? cursor.getString(catIdx) : "General";
-                    habits.add(new HabitItem(id, name, category, false));
+                    String icon = iconIdx != -1 ? cursor.getString(iconIdx) : "📚";
+                    habits.add(new HabitItem(id, name, category, icon, false));
                 }
             }
             AllHabitsAdapter adapter = new AllHabitsAdapter(habits);
@@ -87,12 +89,14 @@ public class HabitsListFragment extends Fragment {
         long id;
         String name;
         String category;
+        String icon;
         boolean completed;
 
-        HabitItem(long id, String name, String category, boolean completed) {
+        HabitItem(long id, String name, String category, String icon, boolean completed) {
             this.id = id;
             this.name = name;
             this.category = category;
+            this.icon = icon;
             this.completed = completed;
         }
     }
@@ -117,6 +121,7 @@ public class HabitsListFragment extends Fragment {
             HabitItem habit = habits.get(position);
             holder.habitName.setText(habit.name);
             holder.habitCategory.setText(habit.category);
+            holder.habitIcon.setText(habit.icon);
             holder.habitCheckbox.setVisibility(View.GONE);
 
             holder.itemView.setOnClickListener(v -> {
@@ -156,12 +161,14 @@ public class HabitsListFragment extends Fragment {
             android.widget.CheckBox habitCheckbox;
             android.widget.TextView habitName;
             android.widget.TextView habitCategory;
+            android.widget.TextView habitIcon;
 
             HabitViewHolder(@NonNull View itemView) {
                 super(itemView);
                 habitCheckbox = itemView.findViewById(R.id.habit_checkbox);
                 habitName = itemView.findViewById(R.id.habit_name);
                 habitCategory = itemView.findViewById(R.id.habit_category);
+                habitIcon = itemView.findViewById(R.id.habit_icon);
             }
         }
     }
